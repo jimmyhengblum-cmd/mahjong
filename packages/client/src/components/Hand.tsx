@@ -79,12 +79,14 @@ export function Hand({
       >
         {concealed.map((tile, i) => {
           const shift = getShiftClass(i);
+          const canDiscard = !disabled && !!onDiscard;
+          const canDrag = !dealing && !!onReorder;
           return (
             <button
               key={i}
-              className={`tile-btn ${shift}`}
+              className={`tile-btn ${shift} ${!canDiscard ? "tile-no-discard" : ""}`}
               style={{ ["--idx" as any]: i }}
-              draggable={!disabled && !!onReorder}
+              draggable={canDrag}
               onDragStart={(e) => {
                 setDraggedIdx(i);
                 e.dataTransfer.effectAllowed = "move";
@@ -111,9 +113,8 @@ export function Hand({
                 setDragOverIdx(null);
               }}
               onClick={() => {
-                if (draggedIdx === null && onDiscard) onDiscard(tile);
+                if (draggedIdx === null && canDiscard) onDiscard!(tile);
               }}
-              disabled={disabled && !onReorder}
               title={tile}
             >
               <Tile tile={tile} size={48} role={tileRole(tile, jokerValue)} />

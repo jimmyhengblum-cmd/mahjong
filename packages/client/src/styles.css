@@ -758,11 +758,14 @@ html, body, #root {
    se décalent pour créer un "trou" à la cible. */
 .hand .tile-btn {
   --tile-step: 52px; /* 48px tile + 4px gap */
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s;
+  /* Transition rapide ease-out pour un drag responsif et snappy */
+  transition: transform 0.14s cubic-bezier(0.2, 0.7, 0.2, 1),
+              opacity 0.1s ease-out;
+  will-change: transform;
 }
 .tile-btn.tile-dragging {
-  opacity: 0.15;
-  transform: scale(0.7);
+  opacity: 0.25;
+  transform: scale(0.82);
   pointer-events: none;
 }
 .tile-btn.shift-left {
@@ -774,6 +777,19 @@ html, body, #root {
 .tile-btn.tile-drag-over {
   transform: translateY(-12px) scale(1.05);
   filter: drop-shadow(0 6px 12px rgba(241, 196, 15, 0.6));
+}
+
+/* Quand drag possible mais pas discard (= pas notre tour) : curseur grab,
+   pas de cursor not-allowed */
+.tile-btn.tile-no-discard {
+  cursor: grab;
+  opacity: 0.92;
+}
+.tile-btn.tile-no-discard:active { cursor: grabbing; }
+.tile-btn.tile-no-discard:hover:not(:disabled) {
+  /* Pas de lift-up — on ne défausse pas */
+  transform: translateY(0) scale(1);
+  filter: none;
 }
 
 .exposed-melds {
