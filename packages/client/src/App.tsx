@@ -13,6 +13,8 @@ import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import { ScoreOverlay } from "./components/ScoreOverlay.js";
 import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
 import { Confetti } from "./components/Confetti.js";
+import { SortIcon } from "./components/Icons.js";
+import { Tooltip } from "./components/Tooltip.js";
 import { sound } from "./sound.js";
 import type { SeatIndex } from "@mjwz/engine";
 
@@ -134,6 +136,15 @@ export function App() {
             <span className="seat-south-you">你</span>
             {statusOf(0) === "passed" && <span className="status-dot status-dot-passed" title="A passé" />}
             {statusOf(0) === "claimed" && <span className="status-dot status-dot-claimed" title="Réagit" />}
+            <Tooltip content="Trier la main par famille" placement="top">
+              <button
+                className="hand-sort-btn"
+                onClick={handOrder.resetOrder}
+                aria-label="Trier la main"
+              >
+                <SortIcon size={14} />
+              </button>
+            </Tooltip>
           </div>
           <Hand
             key={`deal-${game.dealCounter}`}

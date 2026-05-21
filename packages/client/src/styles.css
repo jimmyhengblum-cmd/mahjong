@@ -483,6 +483,25 @@ html, body, #root {
 .seat-south-current .seat-south-wind { color: var(--accent); }
 .seat-south-current .seat-south-you { color: var(--text-secondary); }
 
+.hand-sort-btn {
+  background: transparent;
+  color: var(--text-tertiary);
+  padding: 4px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  transition: all 0.15s;
+}
+.hand-sort-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-2);
+}
+
 /* ==================== OPPOSANTS ==================== */
 
 .opponent {

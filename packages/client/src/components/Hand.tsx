@@ -25,11 +25,21 @@ export function Hand({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
+  const finishDrop = (targetIdx: number | null) => {
+    if (
+      draggedIdx !== null &&
+      targetIdx !== null &&
+      draggedIdx !== targetIdx &&
+      onReorder
+    ) {
+      onReorder(draggedIdx, targetIdx);
+    }
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
   /**
-   * Renvoie une classe pour décaler la tuile et créer le trou
-   * pendant le drag.
-   *   - Drag vers la droite : tuiles entre origine+1 et hover décalées à gauche
-   *   - Drag vers la gauche : tuiles entre hover et origine-1 décalées à droite
+   * Classe pour décaler la tuile et créer un trou pendant le drag.
    */
   const getShiftClass = (idx: number): string => {
     if (draggedIdx === null || dragOverIdx === null) return "";
@@ -55,7 +65,18 @@ export function Hand({
           ))}
         </div>
       )}
-      <div className={`hand ${dealing ? "hand-dealing" : ""}`}>
+      <div
+        className={`hand ${dealing ? "hand-dealing" : ""}`}
+        /* Drop fallback : le container reçoit aussi le drop pour qu'on puisse
+           déposer dans le "trou" entre les tuiles (où il n'y a pas de bouton). */
+        onDragOver={(e) => {
+          if (draggedIdx !== null) e.preventDefault();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          finishDrop(dragOverIdx);
+        }}
+      >
         {concealed.map((tile, i) => {
           const shift = getShiftClass(i);
           return (
@@ -70,17 +91,20 @@ export function Hand({
                 e.dataTransfer.setData("text/plain", String(i));
               }}
               onDragOver={(e) => {
+                if (draggedIdx === null) return;
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
                 if (dragOverIdx !== i) setDragOverIdx(i);
               }}
+              onDragEnter={(e) => {
+                if (draggedIdx === null) return;
+                e.preventDefault();
+                if (dragOverIdx !== i) setDragOverIdx(i);
+              }}
               onDrop={(e) => {
                 e.preventDefault();
-                if (draggedIdx !== null && draggedIdx !== i && onReorder) {
-                  onReorder(draggedIdx, i);
-                }
-                setDraggedIdx(null);
-                setDragOverIdx(null);
+                e.stopPropagation();
+                finishDrop(i);
               }}
               onDragEnd={() => {
                 setDraggedIdx(null);

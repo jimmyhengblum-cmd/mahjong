@@ -81,3 +81,15 @@ export function CloseIcon({ size = 16 }: IconProps) {
     </svg>
   );
 }
+
+export function SortIcon({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...baseProps}>
+      <line x1="3" y1="6" x2="13" y2="6" />
+      <line x1="3" y1="12" x2="10" y2="12" />
+      <line x1="3" y1="18" x2="7" y2="18" />
+      <polyline points="17 5 17 19" />
+      <polyline points="20 16 17 19 14 16" />
+    </svg>
+  );
+}
