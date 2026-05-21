@@ -2,6 +2,7 @@ import { tileToString, type RoundState, type SeatIndex } from "@mjwz/engine";
 import { Tile } from "./Tile.js";
 import { Tooltip } from "./Tooltip.js";
 import { ScoreBoard } from "./ScoreBoard.js";
+import { HelpIcon, RefreshIcon, SoundOffIcon, SoundOnIcon } from "./Icons.js";
 
 interface TopBarProps {
   state: RoundState;
@@ -28,7 +29,7 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <header className="topbar">
-      <Tooltip content="Mahjong de Wenzhou (温州麻将)" placement="bottom">
+      <Tooltip content="Mahjong de Wenzhou — 温州麻将" placement="bottom">
         <h1>温州麻将</h1>
       </Tooltip>
 
@@ -36,15 +37,17 @@ export function TopBar({
         <Tooltip
           content={
             <>
-              <strong>财神 (joker)</strong> : {tileToString(state.ctx.jokerValue)}.
+              <strong>财神 (joker)</strong> · {tileToString(state.ctx.jokerValue)}
               <br />
-              Toutes ses copies sont wildcards, et les 白板 prennent cette valeur.
+              Toutes ses copies sont wildcards.
+              <br />
+              Les 白板 prennent cette valeur.
             </>
           }
           placement="bottom"
         >
           <div className="topbar-joker">
-            <Tile tile={state.ctx.jokerValue} size={36} role="joker" />
+            <Tile tile={state.ctx.jokerValue} size={32} role="joker" />
           </div>
         </Tooltip>
 
@@ -59,17 +62,21 @@ export function TopBar({
       <div className="topbar-actions">
         <Tooltip content={audioEnabled ? "Couper le son" : "Activer le son"} placement="bottom">
           <button className="icon-btn" onClick={onToggleAudio} aria-label="Audio">
-            {audioEnabled ? "🔊" : "🔇"}
+            {audioEnabled ? <SoundOnIcon /> : <SoundOffIcon />}
           </button>
         </Tooltip>
         <Tooltip content="Revoir le tutoriel" placement="bottom">
           <button className="icon-btn" onClick={onOpenTutorial} aria-label="Aide">
-            ?
+            <HelpIcon />
           </button>
         </Tooltip>
         <Tooltip content="Nouvelle manche" placement="bottom">
-          <button className="icon-btn icon-btn-accent" onClick={onNewRound} aria-label="Nouvelle manche">
-            ↺
+          <button
+            className="icon-btn icon-btn-accent"
+            onClick={onNewRound}
+            aria-label="Nouvelle manche"
+          >
+            <RefreshIcon />
           </button>
         </Tooltip>
       </div>

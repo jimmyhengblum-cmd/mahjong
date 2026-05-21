@@ -14,9 +14,7 @@ interface ActionButtonsProps {
 export function ActionButtons({ game }: ActionButtonsProps) {
   const { isHumanTurn, isHumanReacting, humanReactionOptions, state } = game;
 
-  if (state.phase.kind === "ended") {
-    return <span className="action-hint">Manche terminée</span>;
-  }
+  if (state.phase.kind === "ended") return null;
 
   if (isHumanReacting) {
     const opts = humanReactionOptions;
@@ -52,17 +50,16 @@ export function ActionButtons({ game }: ActionButtonsProps) {
       exposedMelds: hand.exposed,
       ctx: state.ctx,
     }).valid;
-    return (
-      <div className="action-buttons">
-        {huPossible && (
+    if (huPossible) {
+      return (
+        <div className="action-buttons">
           <ActionTile variant="hu" cn="胡" hint="自摸" onClick={() => game.selfHu()} />
-        )}
-        {!huPossible && <span className="action-hint">À vous · clique une tuile</span>}
-      </div>
-    );
+        </div>
+      );
+    }
   }
 
-  return <span className="action-hint">En attente…</span>;
+  return null;
 }
 
 interface ActionTileProps {
