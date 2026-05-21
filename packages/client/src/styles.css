@@ -158,28 +158,23 @@ html, body, #root {
 
 /* ==================== WALL SQUARE (perspective 3D, vraie table) ==================== */
 
+/* Vue top-down à plat (comme une vraie table photographiée d'en haut) */
 .wall-square {
   position: relative;
   width: 100%;
   max-width: 560px;
   aspect-ratio: 1;
   margin: 0 auto;
-  perspective: 1500px;
-  perspective-origin: center 60%;
 }
 
-/* Wrapper qui tilte les 4 murs en bloc — les côtés gardent leurs translate */
 .wall-3d-wrapper {
   position: absolute;
   inset: 0;
-  transform: rotateX(20deg);
-  transform-style: preserve-3d;
-  transform-origin: center center;
 }
 
 .wall-square-inside {
   position: absolute;
-  inset: 70px 80px 70px 80px;
+  inset: 64px 72px 64px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -229,15 +224,18 @@ html, body, #root {
   animation: fadeIn 0.3s backwards;
   transition: opacity 0.35s, transform 0.35s, background 0.35s;
 }
+/* Orientation : la tuile est posée avec son long côté ALIGNÉ avec le mur */
 .wall-side-north .wall-tile,
 .wall-side-south .wall-tile {
+  /* Mur horizontal → tuile en landscape (plus large que haute) */
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
 }
 .wall-side-east .wall-tile,
 .wall-side-west .wall-tile {
+  /* Mur vertical → tuile en portrait (plus haute que large) */
   height: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 4;
 }
 
 .wall-tile-drawn {
