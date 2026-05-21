@@ -158,43 +158,42 @@ html, body, #root {
 
 /* ==================== WALL SQUARE (perspective 3D, vraie table) ==================== */
 
-/* Vue top-down à plat — grid 3×3 où N/S spannent la largeur ; les coins
-   du carré sont formés par les extrémités des murs N et S, exactement
-   comme dans la photo de référence. */
+/* Disposition pinwheel (sens horaire) : chaque mur démarre depuis
+   l'intérieur du mur précédent et s'arrête avant le coin du suivant.
+   Le mur suivant "vient prendre le coin" depuis l'extérieur.
+
+   Conséquence : les 4 coins sont formés en spirale et chaque mur "part
+   de l'intérieur" du mur perpendiculaire à sa gauche. */
 .wall-square {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    "north north north"
-    "west  center east"
-    "south south south";
-  width: fit-content;
-  max-width: 100%;
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1;
   margin: 0 auto;
   --wall-tile-short: 22px;
   --wall-tile-long: 30px;
+  /* Profondeur d'un mur perpendiculaire (2 tuiles + gap + padding + border) */
+  --pin-offset: 72px;
 }
 
-.wall-side-north { grid-area: north; }
-.wall-side-south { grid-area: south; }
-.wall-side-east  { grid-area: east;  }
-.wall-side-west  { grid-area: west;  }
-
 .wall-square-inside {
-  grid-area: center;
+  position: absolute;
+  top: var(--pin-offset);
+  right: var(--pin-offset);
+  bottom: var(--pin-offset);
+  left: var(--pin-offset);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px;
-  min-width: 280px;
-  min-height: 260px;
+  padding: 8px;
+  z-index: 2;
 }
 
-/* Côtés du mur (grid items, plus de position absolute) */
+/* Côtés du mur en pinwheel — position absolute avec un offset à un bout */
 .wall-side {
+  position: absolute;
   display: grid;
   gap: 1px;
   border: 2px solid transparent;
@@ -204,13 +203,40 @@ html, body, #root {
   box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
-.wall-side-north, .wall-side-south {
-  grid-template-columns: repeat(17, var(--wall-tile-short));
-  grid-template-rows: repeat(2, var(--wall-tile-long));
+/*
+ * Spirale horaire :
+ *   - N occupe le coin NW (extrémité gauche), s'arrête avant NE (right: offset)
+ *   - E occupe le coin NE (extrémité haute), s'arrête avant SE (bottom: offset)
+ *   - S occupe le coin SE (extrémité droite), s'arrête avant SW (left: offset)
+ *   - W occupe le coin SW (extrémité basse), s'arrête avant NW (top: offset)
+ */
+.wall-side-north {
+  top: 0;
+  left: 0;
+  right: var(--pin-offset);
+  grid-template-columns: repeat(17, 1fr);
+  grid-template-rows: repeat(2, auto);
 }
-.wall-side-east, .wall-side-west {
-  grid-template-columns: repeat(2, var(--wall-tile-long));
-  grid-template-rows: repeat(17, var(--wall-tile-short));
+.wall-side-east {
+  top: 0;
+  right: 0;
+  bottom: var(--pin-offset);
+  grid-template-columns: repeat(2, auto);
+  grid-template-rows: repeat(17, 1fr);
+}
+.wall-side-south {
+  bottom: 0;
+  right: 0;
+  left: var(--pin-offset);
+  grid-template-columns: repeat(17, 1fr);
+  grid-template-rows: repeat(2, auto);
+}
+.wall-side-west {
+  bottom: 0;
+  left: 0;
+  top: var(--pin-offset);
+  grid-template-columns: repeat(2, auto);
+  grid-template-rows: repeat(17, 1fr);
 }
 
 /* Tuiles du mur (orientation d'origine : N/S portrait, E/W landscape) */
@@ -224,13 +250,13 @@ html, body, #root {
 }
 .wall-side-north .wall-tile,
 .wall-side-south .wall-tile {
-  width: var(--wall-tile-short);
-  height: var(--wall-tile-long);
+  width: 100%;
+  aspect-ratio: 3 / 4;
 }
 .wall-side-east .wall-tile,
 .wall-side-west .wall-tile {
-  width: var(--wall-tile-long);
-  height: var(--wall-tile-short);
+  height: 100%;
+  aspect-ratio: 4 / 3;
 }
 
 .wall-tile-drawn {
