@@ -27,11 +27,12 @@ import {
   type Room,
 } from "./rooms.js";
 import { filterStateForSeat } from "./state-filter.js";
-import type {
-  ClientToServerEvents,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData,
+import {
+  serializeStateForWire,
+  type ClientToServerEvents,
+  type InterServerEvents,
+  type ServerToClientEvents,
+  type SocketData,
 } from "./types.js";
 
 const PORT = Number(process.env.PORT) || 3001;
@@ -61,12 +62,13 @@ function broadcastRoomState(room: Room) {
 
 function broadcastGameState(room: Room) {
   if (!room.state) return;
-  // Envoie à chaque socket connecté à cette room son state filtré
+  // Envoie à chaque socket connecté à cette room son state filtré + sérialisé
   for (let seat = 0 as SeatIndex; seat < 4; seat = (seat + 1) as SeatIndex) {
     const s = room.seats[seat]!;
     if (s.kind === "human") {
       const filtered = filterStateForSeat(room.state, seat);
-      io.to(s.socketId).emit("game:state", filtered, seat);
+      const wire = serializeStateForWire(filtered);
+      io.to(s.socketId).emit("game:state", wire, seat);
     }
   }
 }

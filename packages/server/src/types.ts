@@ -3,7 +3,14 @@
  * Le client importe cela via @mjwz/server/types.
  */
 
-import type { RoundAction, RoundEvent, RoundState, SeatIndex } from "@mjwz/engine";
+import type {
+  ClaimIntent,
+  RoundAction,
+  RoundEvent,
+  RoundState,
+  SeatIndex,
+  TileCode,
+} from "@mjwz/engine";
 
 /** Une room contient 4 sièges. Chaque siège est soit humain, soit bot, soit vide. */
 export type Seat =
@@ -18,8 +25,65 @@ export interface RoomPublicState {
   status: "waiting" | "playing" | "ended";
 }
 
-/** State envoyé à chaque client : la main des autres est masquée. */
-export type FilteredRoundState = RoundState;
+/**
+ * Phase sérialisée pour le transport JSON.
+ * Les Set/Map (présents dans la phase "reaction") sont convertis en arrays.
+ */
+export type WirePhase =
+  | { kind: "draw"; current: SeatIndex }
+  | { kind: "discard"; current: SeatIndex }
+  | {
+      kind: "reaction";
+      discardedBy: SeatIndex;
+      discardedTile: TileCode;
+      pending: SeatIndex[];
+      claims: Array<[SeatIndex, ClaimIntent]>;
+    }
+  | { kind: "ended"; result: RoundState["phase"] extends { result: infer R } ? R : never };
+
+/** State filtré pour le réseau (Set/Map → arrays). */
+export interface WireState extends Omit<RoundState, "phase"> {
+  phase: WirePhase;
+}
+
+/** Conserve la rétro-compat avec l'ancien nom. */
+export type FilteredRoundState = WireState;
+
+/**
+ * Convertit l'état du moteur en forme transportable (JSON-safe).
+ * À appeler côté serveur avant d'émettre via Socket.io.
+ */
+export function serializeStateForWire(state: RoundState): WireState {
+  if (state.phase.kind !== "reaction") {
+    // draw / discard / ended : pas de Set/Map, on caste directement.
+    return state as unknown as WireState;
+  }
+  const wirePhase: WirePhase = {
+    kind: "reaction",
+    discardedBy: state.phase.discardedBy,
+    discardedTile: state.phase.discardedTile,
+    pending: [...state.phase.pending],
+    claims: [...state.phase.claims.entries()],
+  };
+  return { ...state, phase: wirePhase } as unknown as WireState;
+}
+
+/**
+ * Inverse de serializeStateForWire — reconstruit les Set/Map côté client.
+ */
+export function deserializeStateFromWire(state: WireState): RoundState {
+  if (state.phase.kind !== "reaction") {
+    return state as unknown as RoundState;
+  }
+  const enginePhase = {
+    kind: "reaction" as const,
+    discardedBy: state.phase.discardedBy,
+    discardedTile: state.phase.discardedTile,
+    pending: new Set(state.phase.pending),
+    claims: new Map(state.phase.claims),
+  };
+  return { ...state, phase: enginePhase } as unknown as RoundState;
+}
 
 // -------------------- Socket.io events --------------------
 
@@ -30,7 +94,7 @@ export interface ServerToClientEvents {
   "room:error": (msg: string) => void;
   /** État filtré de la manche en cours (mis à jour à chaque action). */
   "game:state": (
-    state: FilteredRoundState,
+    state: WireState,
     /** Le siège du destinataire dans cette state. */
     yourSeat: SeatIndex
   ) => void;

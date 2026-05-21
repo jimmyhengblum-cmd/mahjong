@@ -1,14 +1,11 @@
 import type { RoundState, SeatIndex, TileCode } from "@mjwz/engine";
-import type { FilteredRoundState } from "./types.js";
 
 /**
  * Masque la main des autres sièges et le contenu du mur restant.
- * Le client garde la même forme (RoundState) mais sans pouvoir tricher.
+ * Retourne un RoundState au sens du moteur (Set/Map intacts) — la sérialisation
+ * JSON-safe (Set/Map → arrays) est faite ensuite par serializeStateForWire.
  */
-export function filterStateForSeat(
-  state: RoundState,
-  viewerSeat: SeatIndex
-): FilteredRoundState {
+export function filterStateForSeat(state: RoundState, viewerSeat: SeatIndex): RoundState {
   const PLACEHOLDER: TileCode = "we";
   return {
     ...state,

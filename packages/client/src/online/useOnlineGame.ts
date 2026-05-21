@@ -9,7 +9,7 @@ import {
   type SeatIndex,
   type TileCode,
 } from "@mjwz/engine";
-import type { RoomPublicState } from "@mjwz/server/types";
+import { deserializeStateFromWire, type RoomPublicState, type WireState } from "@mjwz/server/types";
 import type {
   AnnouncementEvent,
   HumanReactionOptions,
@@ -57,9 +57,9 @@ export function useOnlineGame(): UseOnlineGameResult {
   useEffect(() => {
     const socket = getSocket();
     const onRoomState = (r: RoomPublicState) => setRoom(r);
-    const onGameState = (s: RoundState, mySeat: SeatIndex) => {
+    const onGameState = (wire: WireState, mySeat: SeatIndex) => {
       setSeat(mySeat);
-      setState(s);
+      setState(deserializeStateFromWire(wire));
     };
     const onGameEvent = (newEvents: RoundEvent[]) => {
       setEvents((prev) => [...prev, ...newEvents]);
