@@ -130,21 +130,24 @@ function CharactersFace({ n }: { n: number }) {
 
 // ---------- Cercles (筒) ----------
 
-/** Position des cercles selon le numéro. Coordonnées centrées en (30, 40), boîte 50×60. */
+/**
+ * Position des cercles. Boîte 60×80. Chaque numéro a un motif clairement distinct.
+ * 8 utilise une grille 2×4 (séparation verticale claire), 9 une grille 3×3.
+ */
 const DOT_POSITIONS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
   [], // index 0 unused
-  [[30, 40]],
-  [[18, 25], [42, 55]],
-  [[15, 22], [30, 40], [45, 58]],
-  [[18, 22], [42, 22], [18, 58], [42, 58]],
-  [[18, 22], [42, 22], [30, 40], [18, 58], [42, 58]],
-  [[18, 22], [42, 22], [18, 40], [42, 40], [18, 58], [42, 58]],
-  [[15, 18], [30, 18], [45, 18], [22, 40], [38, 40], [22, 60], [45, 60]],
-  [[15, 18], [30, 18], [45, 18], [15, 40], [45, 40], [15, 60], [30, 60], [45, 60]],
-  [[15, 18], [30, 18], [45, 18], [15, 40], [30, 40], [45, 40], [15, 60], [30, 60], [45, 60]],
+  [[30, 40]],                                                              // 1 : centre
+  [[20, 22], [40, 58]],                                                    // 2 : diagonale
+  [[16, 22], [30, 40], [44, 58]],                                          // 3 : diagonale
+  [[20, 22], [40, 22], [20, 58], [40, 58]],                                // 4 : carré 2×2
+  [[20, 22], [40, 22], [30, 40], [20, 58], [40, 58]],                      // 5 : X
+  [[20, 22], [40, 22], [20, 40], [40, 40], [20, 58], [40, 58]],            // 6 : grille 2×3
+  [[15, 18], [30, 18], [45, 18], [30, 40], [20, 60], [30, 60], [40, 60]],  // 7 : 3+1+3
+  [[20, 18], [40, 18], [20, 33], [40, 33], [20, 47], [40, 47], [20, 62], [40, 62]], // 8 : 2×4
+  [[15, 18], [30, 18], [45, 18], [15, 40], [30, 40], [45, 40], [15, 60], [30, 60], [45, 60]], // 9 : 3×3
 ];
 
-const DOT_COLORS = ["#c8201f", "#157f3e", "#1e5fa8"]; // rouge, vert, bleu pour distinguer
+const DOT_COLORS = ["#c8201f", "#157f3e", "#1e5fa8"]; // rouge, vert, bleu
 
 function DotsFace({ n }: { n: number }) {
   return (
@@ -163,27 +166,25 @@ function DotsFace({ n }: { n: number }) {
 
 function BambooFace({ n }: { n: number }) {
   if (n === 1) {
-    // Tradition : un oiseau stylisé. On dessine un bambou + cercle rouge pour faire simple.
     return (
       <>
-        <BambooStick x="30" y="20" />
+        <BambooStick x="30" y="22" />
         <circle cx="30" cy="55" r="13" fill="#c8201f" stroke="#2c2c2c" strokeWidth="0.5" />
-        <text x="30" y="62" textAnchor="middle" fontSize="14" fontWeight="700" fill="#faf5e0">鸟</text>
+        <text x="30" y="62" textAnchor="middle" fontSize="14" fontWeight="700" fill="#faf5e0">
+          鸟
+        </text>
       </>
     );
   }
-  // Arrangement vertical de bambous, max 3 par ligne
-  const positions: Array<[number, number]> = [];
-  if (n === 2) positions.push([22, 25], [22, 55], [38, 25], [38, 55]);
-  // hack: simpler approach below
+  // 8 = grille 2×4 (clairement séparée verticalement du 9 qui est 3×3)
   const arrangements: Record<number, Array<[number, number]>> = {
-    2: [[22, 30], [38, 30], [22, 55], [38, 55]].slice(0, 2) as any,
-    3: [[15, 30], [30, 30], [45, 30], [15, 60], [30, 60], [45, 60]].slice(0, 3) as any,
+    2: [[22, 30], [38, 30]],
+    3: [[15, 30], [30, 30], [45, 30]],
     4: [[20, 22], [40, 22], [20, 58], [40, 58]],
     5: [[20, 22], [40, 22], [30, 40], [20, 58], [40, 58]],
     6: [[18, 22], [30, 22], [42, 22], [18, 58], [30, 58], [42, 58]],
-    7: [[15, 18], [30, 18], [45, 18], [22, 40], [38, 40], [22, 60], [45, 60]],
-    8: [[15, 18], [30, 18], [45, 18], [15, 40], [45, 40], [15, 60], [30, 60], [45, 60]],
+    7: [[15, 18], [30, 18], [45, 18], [30, 40], [20, 60], [30, 60], [40, 60]],
+    8: [[20, 18], [40, 18], [20, 33], [40, 33], [20, 47], [40, 47], [20, 62], [40, 62]],
     9: [[15, 18], [30, 18], [45, 18], [15, 40], [30, 40], [45, 40], [15, 60], [30, 60], [45, 60]],
   };
   const arr = arrangements[n] ?? [];

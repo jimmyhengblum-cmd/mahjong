@@ -2,35 +2,29 @@ import { useGame } from "./hooks/useGame.js";
 import { Hand } from "./components/Hand.js";
 import { Opponent } from "./components/Opponent.js";
 import { CenterInfo } from "./components/CenterInfo.js";
+import { TopBar } from "./components/TopBar.js";
 import { Tile, tileRole } from "./components/Tile.js";
-import { checkHu } from "@mjwz/engine";
+import { checkHu, type SeatIndex } from "@mjwz/engine";
+
+const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
 
 export function App() {
   const game = useGame();
   const { state } = game;
   const human = state.hands[game.humanSeat]!;
 
-  // Mapping siège → label affiché. Humain (siège 0 = East) est en bas.
-  const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
-
-  const isCurrent = (seat: number): boolean => {
-    if (state.phase.kind === "ended") return false;
-    if (state.phase.kind === "reaction") {
-      // Pendant la phase reaction, "current" = sièges qui doivent encore réagir
-      return state.phase.pending.has(seat as 0 | 1 | 2 | 3);
-    }
-    return (state.phase as any).current === seat;
+  const currentSeat = getCurrentSeat(state);
+  const turnOrderOf = (seat: SeatIndex): number => {
+    if (currentSeat === null) return 0;
+    return ((seat - currentSeat + 4) % 4) + 1;
   };
+  const isCurrent = (seat: SeatIndex): boolean => seat === currentSeat;
 
   return (
     <div className="app">
-      <header className="topbar">
-        <h1>温州麻将 — Mahjong de Wenzhou</h1>
-        <button onClick={game.newRound}>Nouvelle manche</button>
-      </header>
+      <TopBar state={state} onNewRound={game.newRound} />
 
       <main className="table">
-        {/* Nord (siège 2) */}
         <div className="seat-north">
           <Opponent
             label={SEAT_LABELS[2]!}
@@ -39,10 +33,10 @@ export function App() {
             discards={state.hands[2]!.discards}
             jokerValue={state.ctx.jokerValue}
             isCurrent={isCurrent(2)}
+            turnOrder={turnOrderOf(2)}
           />
         </div>
 
-        {/* Ouest (siège 1) */}
         <div className="seat-west">
           <Opponent
             label={SEAT_LABELS[1]!}
@@ -51,10 +45,10 @@ export function App() {
             discards={state.hands[1]!.discards}
             jokerValue={state.ctx.jokerValue}
             isCurrent={isCurrent(1)}
+            turnOrder={turnOrderOf(1)}
           />
         </div>
 
-        {/* Est (siège 3) */}
         <div className="seat-east">
           <Opponent
             label={SEAT_LABELS[3]!}
@@ -63,22 +57,27 @@ export function App() {
             discards={state.hands[3]!.discards}
             jokerValue={state.ctx.jokerValue}
             isCurrent={isCurrent(3)}
+            turnOrder={turnOrderOf(3)}
           />
         </div>
 
-        {/* Centre */}
         <CenterInfo state={state} events={game.events} />
 
-        {/* Sud = humain (siège 0) */}
         <div className={`seat-south ${isCurrent(0) ? "seat-active" : ""}`}>
           <div className="seat-south-label">
-            {isCurrent(0) ? "▶ " : ""}{SEAT_LABELS[0]}
+            <span className={`turn-badge ${turnOrderOf(0) === 1 ? "turn-badge-current" : ""}`}>
+              {turnOrderOf(0)}
+            </span>
+            {SEAT_LABELS[0]}
           </div>
           {human.discards.length > 0 && (
-            <div className="discards-row">
-              {human.discards.map((t, i) => (
-                <Tile key={i} tile={t} size={26} role={tileRole(t, state.ctx.jokerValue)} />
-              ))}
+            <div className="discards-block">
+              <div className="discards-label">Vos défausses ({human.discards.length})</div>
+              <div className="discards-grid">
+                {human.discards.map((t, i) => (
+                  <Tile key={i} tile={t} size={24} role={tileRole(t, state.ctx.jokerValue)} />
+                ))}
+              </div>
             </div>
           )}
           <Hand
@@ -98,6 +97,12 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+function getCurrentSeat(state: ReturnType<typeof useGame>["state"]): SeatIndex | null {
+  if (state.phase.kind === "ended") return null;
+  if (state.phase.kind === "reaction") return state.phase.discardedBy;
+  return state.phase.current;
 }
 
 function ActionBar({ game }: { game: ReturnType<typeof useGame> }) {
@@ -134,7 +139,6 @@ function ActionBar({ game }: { game: ReturnType<typeof useGame> }) {
   }
 
   if (isHumanTurn) {
-    // Vérifier si Hu est possible sur la main
     return (
       <>
         <span className="hint">À vous — cliquez une tuile pour défausser</span>

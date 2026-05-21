@@ -8,13 +8,26 @@ interface OpponentProps {
   discards: readonly TileCode[];
   jokerValue: TileCode;
   isCurrent: boolean;
+  /** Position dans l'ordre de jeu depuis le siège courant (1 = joue, 2 = ensuite, etc.) */
+  turnOrder: number;
 }
 
-export function Opponent({ label, concealedCount, exposed, discards, jokerValue, isCurrent }: OpponentProps) {
+export function Opponent({
+  label,
+  concealedCount,
+  exposed,
+  discards,
+  jokerValue,
+  isCurrent,
+  turnOrder,
+}: OpponentProps) {
   return (
     <div className="opponent">
       <div className={`opponent-label ${isCurrent ? "current" : ""}`}>
-        {isCurrent ? "▶ " : ""}{label} · {concealedCount} tuiles
+        <span className={`turn-badge ${turnOrder === 1 ? "turn-badge-current" : ""}`}>
+          {turnOrder}
+        </span>
+        {label} · {concealedCount}
       </div>
       {exposed.length > 0 && (
         <div className="exposed-melds">
@@ -33,10 +46,13 @@ export function Opponent({ label, concealedCount, exposed, discards, jokerValue,
         ))}
       </div>
       {discards.length > 0 && (
-        <div className="discards-row">
-          {discards.map((t, i) => (
-            <Tile key={i} tile={t} size={24} role={tileRole(t, jokerValue)} />
-          ))}
+        <div className="discards-block">
+          <div className="discards-label">Défausses ({discards.length})</div>
+          <div className="discards-grid">
+            {discards.map((t, i) => (
+              <Tile key={i} tile={t} size={22} role={tileRole(t, jokerValue)} />
+            ))}
+          </div>
         </div>
       )}
     </div>
