@@ -1,10 +1,14 @@
 /**
- * Petit moteur audio basé sur Web Audio API.
- * Tous les sons sont synthétisés à la volée (pas d'asset externe).
+ * Petit moteur audio basé sur Web Audio API + Web Speech API.
  *
- * Le contexte est créé paresseusement à la 1ère interaction utilisateur
+ * - SFX : synthétisés à la volée (pas d'asset externe), via AudioContext
+ * - Voix : annonces TTS en mandarin (一万, 碰, 胡...) via speechSynthesis
+ *
+ * Le contexte audio est créé paresseusement à la 1ère interaction utilisateur
  * (pour respecter la politique autoplay des navigateurs).
  */
+
+import type { TileCode } from "@mjwz/engine";
 
 export type SoundName =
   | "click"   // défausse / pioche d'une tuile
@@ -15,6 +19,25 @@ export type SoundName =
   | "hu"      // victoire (arpège)
   | "turn"    // notification "à vous"
   | "lose";   // bot fait Hu
+
+/** Noms en mandarin des tuiles, pour la TTS. */
+const TILE_NAMES_CN: Record<TileCode, string> = {
+  m1: "一万", m2: "二万", m3: "三万", m4: "四万", m5: "五万",
+  m6: "六万", m7: "七万", m8: "八万", m9: "九万",
+  p1: "一筒", p2: "二筒", p3: "三筒", p4: "四筒", p5: "五筒",
+  p6: "六筒", p7: "七筒", p8: "八筒", p9: "九筒",
+  s1: "一条", s2: "二条", s3: "三条", s4: "四条", s5: "五条",
+  s6: "六条", s7: "七条", s8: "八条", s9: "九条",
+  we: "东风", ws: "南风", ww: "西风", wn: "北风",
+  dr: "红中", dg: "发财", dw: "白板",
+};
+
+const ACTION_NAMES_CN: Record<string, string> = {
+  pong: "碰",
+  kong: "杠",
+  chi: "吃",
+  hu: "胡了",
+};
 
 const STORAGE_KEY = "mjwz-audio-enabled";
 
@@ -31,6 +54,27 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   private enabled = readStoredEnabled();
   private masterVolume = 0.6;
+  private chineseVoice: SpeechSynthesisVoice | null = null;
+
+  constructor() {
+    this.refreshVoice();
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => this.refreshVoice();
+    }
+  }
+
+  /** Recherche la meilleure voix chinoise disponible sur le système. */
+  private refreshVoice() {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const voices = window.speechSynthesis.getVoices();
+    // Priorité : zh-CN > zh-TW > zh-HK > toute voix zh-*
+    this.chineseVoice =
+      voices.find((v) => v.lang === "zh-CN") ||
+      voices.find((v) => v.lang === "zh-TW") ||
+      voices.find((v) => v.lang === "zh-HK") ||
+      voices.find((v) => v.lang.toLowerCase().startsWith("zh")) ||
+      null;
+  }
 
   setEnabled(b: boolean) {
     this.enabled = b;
@@ -39,7 +83,12 @@ class SoundManager {
     } catch {
       /* localStorage indisponible */
     }
-    if (b) this.ensureCtx();
+    if (b) {
+      this.ensureCtx();
+    } else if (typeof window !== "undefined" && window.speechSynthesis) {
+      // Coupe immédiatement toute voix en cours
+      window.speechSynthesis.cancel();
+    }
   }
 
   isEnabled() {
@@ -72,6 +121,34 @@ class SoundManager {
     if (!ctx) return;
     const fn = SYNTHS[name];
     fn(ctx, this.masterVolume);
+  }
+
+  /** Annonce vocale d'une tuile (ex: "五筒" pour p5). */
+  speakTile(tile: TileCode) {
+    const text = TILE_NAMES_CN[tile];
+    if (text) this._speak(text, 1.05);
+  }
+
+  /** Annonce vocale d'une action (碰 / 杠 / 吃 / 胡了). */
+  speakAction(actionType: "pong" | "kong" | "chi" | "hu") {
+    const text = ACTION_NAMES_CN[actionType];
+    if (text) this._speak(text, 1.0);
+  }
+
+  private _speak(text: string, rate: number) {
+    if (!this.enabled) return;
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "zh-CN";
+      u.rate = rate;
+      u.pitch = 1.0;
+      u.volume = Math.min(1, this.masterVolume * 0.9);
+      if (this.chineseVoice) u.voice = this.chineseVoice;
+      window.speechSynthesis.speak(u);
+    } catch {
+      /* speechSynthesis indisponible ou erreur */
+    }
   }
 }
 

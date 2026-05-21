@@ -25,18 +25,28 @@ export function useGameSounds(
       switch (e.type) {
         case "discarded":
           sound.play("click");
+          // Annonce vocale de la tuile défaussée (一万, 五筒, 东风...)
+          sound.speakTile(e.tile);
           break;
         case "drawn":
           sound.play("draw");
           break;
         case "claimed":
-          if (e.intent.type === "pong") sound.play("pong");
-          else if (e.intent.type === "kong") sound.play("kong");
-          else if (e.intent.type === "chi") sound.play("chi");
+          if (e.intent.type === "pong") {
+            sound.play("pong");
+            sound.speakAction("pong");
+          } else if (e.intent.type === "kong") {
+            sound.play("kong");
+            sound.speakAction("kong");
+          } else if (e.intent.type === "chi") {
+            sound.play("chi");
+            sound.speakAction("chi");
+          }
           break;
         case "hu":
           if (e.seat === humanSeat) sound.play("hu");
           else sound.play("lose");
+          sound.speakAction("hu");
           break;
         case "drawn-wall":
           sound.play("lose");
