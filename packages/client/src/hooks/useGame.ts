@@ -55,11 +55,11 @@ export function useGame(): UseGameResult {
   const [events, setEvents] = useState<RoundEvent[]>([]);
   const driverTimeout = useRef<number | null>(null);
 
-  // Émet un applyAction et accumule les events
+  // Émet un applyAction et accumule les events (toute la manche, reset au newRound)
   const dispatch = useCallback((action: RoundAction) => {
     setState((prev) => {
       const { state: next, events: newEvents } = applyAction(prev, action);
-      setEvents((evts) => [...evts.slice(-50), ...newEvents]); // garde 50 derniers
+      setEvents((evts) => [...evts, ...newEvents]);
       return next;
     });
   }, []);

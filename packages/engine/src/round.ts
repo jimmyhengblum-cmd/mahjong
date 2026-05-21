@@ -74,6 +74,8 @@ export interface RoundResult {
   /** Défausseur — null si auto-pioche ou 流局. */
   readonly discarder: SeatIndex | null;
   readonly huResult?: HuResult;
+  /** Tuile qui a complété la main (ajoutée en dernier à concealed). */
+  readonly winningTile?: TileCode;
 }
 
 export interface RoundState {
@@ -231,6 +233,9 @@ function doSelfHu(state: RoundState, seat: SeatIndex): ApplyResult {
   if (!huResult.valid) {
     throw new Error(`Le siège ${seat} n'a pas une main gagnante.`);
   }
+  // Sur auto-pioche, la tuile gagnante est la dernière piochée (placée en fin de concealed avant tri).
+  // On ne peut pas la retrouver après sortTiles, donc on prend la dernière du wall.tiles consommée.
+  // En pratique : pas accessible ici. On laisse winningTile undefined pour self-hu.
   return endRound(
     state,
     { kind: "hu", winner: seat, discarder: null, huResult },
@@ -318,7 +323,7 @@ function doResolveReactions(state: RoundState): ApplyResult {
     });
     return endRound(
       { ...state, hands: handsAtWin },
-      { kind: "hu", winner: seat, discarder: discardedBy, huResult },
+      { kind: "hu", winner: seat, discarder: discardedBy, huResult, winningTile: discardedTile },
       [{ type: "hu", seat, huResult, selfPick: false, discarder: discardedBy }]
     );
   }
