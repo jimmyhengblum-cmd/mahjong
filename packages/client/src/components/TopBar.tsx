@@ -10,6 +10,7 @@ interface TopBarProps {
   onToggleAudio: () => void;
   onOpenTutorial: () => void;
   onToggleScores: () => void;
+  onExit?: () => void;
 }
 
 export function TopBar({
@@ -19,6 +20,7 @@ export function TopBar({
   onToggleAudio,
   onOpenTutorial,
   onToggleScores,
+  onExit,
 }: TopBarProps) {
   return (
     <header className="topbar">
@@ -58,6 +60,13 @@ export function TopBar({
             <RefreshIcon />
           </button>
         </Tooltip>
+        {onExit && (
+          <Tooltip content="Quitter la partie" placement="bottom">
+            <button className="icon-btn" onClick={onExit} aria-label="Quitter">
+              ✕
+            </button>
+          </Tooltip>
+        )}
       </div>
     </header>
   );

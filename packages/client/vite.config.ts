@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@mjwz/engine": path.resolve(__dirname, "../engine/src/index.ts"),
+      "@mjwz/server/types": path.resolve(__dirname, "../server/src/types.ts"),
     },
   },
   server: { port: 5173, open: true },

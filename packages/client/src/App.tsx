@@ -1,194 +1,39 @@
-import { useCallback, useState } from "react";
-import { useGame } from "./hooks/useGame.js";
-import { useHandOrder } from "./hooks/useHandOrder.js";
-import { useGameSounds } from "./hooks/useGameSounds.js";
-import { useKeyboard } from "./hooks/useKeyboard.js";
-import { Hand } from "./components/Hand.js";
-import { Opponent } from "./components/Opponent.js";
-import { CenterInfo } from "./components/CenterInfo.js";
-import { TopBar } from "./components/TopBar.js";
-import { ActionButtons } from "./components/ActionButtons.js";
-import { WinningHandReveal } from "./components/WinningHandReveal.js";
-import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
-import { ScoreOverlay } from "./components/ScoreOverlay.js";
-import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
-import { Confetti } from "./components/Confetti.js";
-import { SortIcon } from "./components/Icons.js";
-import { Tooltip } from "./components/Tooltip.js";
-import { sound } from "./sound.js";
-import type { SeatIndex } from "@mjwz/engine";
+import { useState } from "react";
+import { ModeSelect } from "./ModeSelect.js";
+import { SoloGame } from "./SoloGame.js";
+import { Lobby } from "./online/Lobby.js";
+import { OnlineGame } from "./online/OnlineGame.js";
+import { disconnectSocket } from "./online/socket.js";
 
-const SEAT_WINDS = ["东", "南", "西", "北"];
-const SEAT_FULL = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
+type Mode = "menu" | "solo" | "online-lobby" | "online-game";
 
 export function App() {
-  const game = useGame();
-  const { state } = game;
-  const human = state.hands[game.humanSeat]!;
-  const handOrder = useHandOrder(human.concealed);
+  const [mode, setMode] = useState<Mode>("menu");
 
-  // Sons : branche sur les events
-  useGameSounds(game.events, game.humanSeat, game.isHumanTurn, game.isHumanReacting);
-
-  // Tutorial : montre au 1er chargement, ré-ouvrable via le ?
-  const [showTutorial, setShowTutorial] = useState(() => !hasSeenTutorial());
-  const closeTutorial = () => {
-    setShowTutorial(false);
-    markTutorialSeen();
-  };
-
-  // Audio toggle
-  const [audioEnabled, setAudioEnabled] = useState(sound.isEnabled());
-  const toggleAudio = () => {
-    const next = !audioEnabled;
-    sound.setEnabled(next);
-    setAudioEnabled(next);
-  };
-
-  // Score overlay (Tab toggle)
-  const [showScores, setShowScores] = useState(false);
-
-  // Raccourcis clavier
-  useKeyboard({
-    onTab: useCallback(() => setShowScores((s) => !s), []),
-    onSpace: useCallback(() => {
-      if (game.isHumanReacting) game.pass();
-    }, [game.isHumanReacting, game.pass]),
-    onEscape: useCallback(() => {
-      setShowScores(false);
-      setShowTutorial(false);
-    }, []),
-  });
-
-  const currentSeat = getCurrentSeat(state);
-  const turnOrderOf = (seat: SeatIndex): number => {
-    if (currentSeat === null) return 0;
-    return ((seat - currentSeat + 4) % 4) + 1;
-  };
-
-  const statusOf = (seat: SeatIndex): "idle" | "current" | "passed" | "claimed" => {
-    if (state.phase.kind === "ended") return "idle";
-    if (state.phase.kind === "reaction") {
-      if (seat === state.phase.discardedBy) return "current";
-      if (state.phase.claims.has(seat)) return "claimed";
-      if (!state.phase.pending.has(seat)) return "passed";
-      return "idle";
-    }
-    return seat === (state.phase as any).current ? "current" : "idle";
-  };
-
-  return (
-    <div className="app">
-      <TopBar
-        state={state}
-        onNewRound={game.newRound}
-        audioEnabled={audioEnabled}
-        onToggleAudio={toggleAudio}
-        onOpenTutorial={() => setShowTutorial(true)}
-        onToggleScores={() => setShowScores((s) => !s)}
+  if (mode === "menu") {
+    return (
+      <ModeSelect
+        onSolo={() => setMode("solo")}
+        onOnline={() => setMode("online-lobby")}
       />
-
-      <main className="table">
-        <div className="seat-north">
-          <Opponent
-            wind={SEAT_WINDS[2]!}
-            fullName={SEAT_FULL[2]!}
-            concealedCount={state.hands[2]!.concealed.length}
-            exposed={state.hands[2]!.exposed}
-            jokerValue={state.ctx.jokerValue}
-            status={statusOf(2)}
-            turnOrder={turnOrderOf(2)}
-          />
-        </div>
-
-        <div className="seat-west">
-          <Opponent
-            wind={SEAT_WINDS[1]!}
-            fullName={SEAT_FULL[1]!}
-            concealedCount={state.hands[1]!.concealed.length}
-            exposed={state.hands[1]!.exposed}
-            jokerValue={state.ctx.jokerValue}
-            status={statusOf(1)}
-            turnOrder={turnOrderOf(1)}
-          />
-        </div>
-
-        <div className="seat-east">
-          <Opponent
-            wind={SEAT_WINDS[3]!}
-            fullName={SEAT_FULL[3]!}
-            concealedCount={state.hands[3]!.concealed.length}
-            exposed={state.hands[3]!.exposed}
-            jokerValue={state.ctx.jokerValue}
-            status={statusOf(3)}
-            turnOrder={turnOrderOf(3)}
-          />
-        </div>
-
-        <CenterInfo state={state} events={game.events} humanSeat={game.humanSeat} />
-
-        <div className={`seat-south seat-south-${statusOf(0)}`}>
-          <div className="seat-south-label">
-            <span className={`turn-badge ${turnOrderOf(0) === 1 ? "turn-badge-current" : ""}`}>
-              {turnOrderOf(0)}
-            </span>
-            <span className="seat-south-wind">{SEAT_WINDS[0]}</span>
-            <span className="seat-south-you">你</span>
-            {statusOf(0) === "passed" && <span className="status-dot status-dot-passed" title="A passé" />}
-            {statusOf(0) === "claimed" && <span className="status-dot status-dot-claimed" title="Réagit" />}
-            <Tooltip content="Trier la main par famille" placement="top">
-              <button
-                className="hand-sort-btn"
-                onClick={handOrder.resetOrder}
-                aria-label="Trier la main"
-              >
-                <SortIcon size={14} />
-              </button>
-            </Tooltip>
-          </div>
-          <Hand
-            key={`deal-${game.dealCounter}`}
-            concealed={handOrder.order}
-            exposed={human.exposed}
-            jokerValue={state.ctx.jokerValue}
-            onDiscard={game.isHumanTurn ? game.discard : undefined}
-            onReorder={handOrder.reorder}
-            disabled={!game.isHumanTurn}
-            dealing={game.isDealing}
-          />
-        </div>
-      </main>
-
-      <footer className="action-bar">
-        <ActionButtons game={game} />
-      </footer>
-
-      <ClaimAnnouncement announcement={game.announcement} jokerValue={state.ctx.jokerValue} />
-
-      <WinningHandReveal state={state} humanSeat={game.humanSeat} onNewRound={game.newRound} />
-
-      <Confetti trigger={game.humanWinTrigger} />
-
-      {showScores && (
-        <ScoreOverlay
-          scores={game.sessionScores}
-          roundCount={game.sessionRoundCount}
-          humanSeat={game.humanSeat}
-          onClose={() => setShowScores(false)}
-          onReset={() => {
-            game.resetSession();
-            setShowScores(false);
-          }}
-        />
-      )}
-
-      {showTutorial && <Tutorial onClose={closeTutorial} />}
-    </div>
-  );
-}
-
-function getCurrentSeat(state: ReturnType<typeof useGame>["state"]): SeatIndex | null {
-  if (state.phase.kind === "ended") return null;
-  if (state.phase.kind === "reaction") return state.phase.discardedBy;
-  return state.phase.current;
+    );
+  }
+  if (mode === "solo") {
+    return <SoloGame onExit={() => setMode("menu")} />;
+  }
+  if (mode === "online-lobby") {
+    return (
+      <Lobby
+        onJoined={() => setMode("online-game")}
+        onBack={() => {
+          disconnectSocket();
+          setMode("menu");
+        }}
+      />
+    );
+  }
+  if (mode === "online-game") {
+    return <OnlineGame onExit={() => setMode("menu")} />;
+  }
+  return null;
 }

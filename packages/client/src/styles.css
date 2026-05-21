@@ -1096,6 +1096,254 @@ kbd {
   letter-spacing: 0.04em;
 }
 
+/* ==================== MODE SELECT (landing) ==================== */
+
+.mode-select {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, var(--bg-felt) 0%, var(--bg) 80%);
+  padding: var(--s-4);
+}
+.mode-select-card {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+}
+.mode-select-title {
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 48px;
+  margin: 0;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.mode-select-sub {
+  color: var(--text-secondary);
+  font-size: var(--t-md);
+  margin: var(--s-2) 0 var(--s-6);
+}
+.mode-select-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.mode-select-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  padding: var(--s-4) var(--s-5);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text);
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.mode-select-btn:hover {
+  background: var(--surface-3);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.mode-select-btn-primary {
+  background: var(--accent-soft);
+  border-color: var(--border-accent);
+}
+.mode-select-btn-primary:hover { background: rgba(241, 196, 15, 0.22); }
+.mode-select-btn-title {
+  font-size: var(--t-lg);
+  font-weight: 600;
+}
+.mode-select-btn-primary .mode-select-btn-title { color: var(--accent); }
+.mode-select-btn-desc {
+  font-size: var(--t-sm);
+  color: var(--text-secondary);
+}
+.mode-select-footer {
+  margin-top: var(--s-5);
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ==================== LOBBY (online) ==================== */
+
+.lobby {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, var(--bg-felt) 0%, var(--bg) 80%);
+  padding: var(--s-4);
+}
+.lobby-card {
+  max-width: 420px;
+  width: 100%;
+  background: var(--surface-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-xl);
+  padding: var(--s-5);
+}
+.lobby-card h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-xl);
+  color: var(--text);
+  font-weight: 600;
+}
+.lobby-hint {
+  font-size: var(--t-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--s-3);
+  line-height: 1.5;
+}
+.lobby-input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: var(--s-2);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--t-md);
+  box-sizing: border-box;
+}
+.lobby-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.lobby-input-code {
+  font-family: 'SF Mono', 'Monaco', monospace;
+  font-size: var(--t-xl);
+  text-align: center;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.lobby-actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.lobby-btn {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--t-md);
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.lobby-btn:hover { background: var(--surface-3); }
+.lobby-btn-primary {
+  background: var(--accent);
+  color: var(--dim);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.lobby-btn-primary:hover { background: rgba(241, 196, 15, 0.85); }
+.lobby-error {
+  margin-top: var(--s-3);
+  padding: 8px 12px;
+  background: rgba(239, 111, 94, 0.12);
+  border: 1px solid rgba(239, 111, 94, 0.3);
+  border-radius: var(--r-md);
+  color: var(--negative);
+  font-size: var(--t-sm);
+}
+.lobby-link {
+  display: inline-block;
+  margin-top: var(--s-3);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--t-sm);
+  text-decoration: underline;
+  font-family: inherit;
+}
+.lobby-link:hover { color: var(--text); }
+
+.lobby-code-block {
+  text-align: center;
+  margin-bottom: var(--s-4);
+  padding: var(--s-4);
+  background: var(--accent-soft);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--r-lg);
+}
+.lobby-code-label {
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: var(--s-2);
+}
+.lobby-code {
+  font-family: 'SF Mono', 'Monaco', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  line-height: 1;
+}
+.lobby-seats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+  margin: var(--s-3) 0;
+}
+.lobby-seat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+}
+.lobby-seat-human { border-color: var(--border-accent); background: var(--accent-soft); }
+.lobby-seat-bot { opacity: 0.6; }
+.lobby-seat-empty { opacity: 0.4; border-style: dashed; }
+.lobby-seat-wind {
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: var(--t-sm);
+  color: var(--text-secondary);
+}
+.lobby-seat-occupant {
+  font-size: var(--t-md);
+  color: var(--text);
+  font-weight: 500;
+}
+.lobby-seat-human .lobby-seat-occupant { color: var(--accent); }
+
+/* ==================== LOADING ==================== */
+
+.loading-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  color: var(--text-secondary);
+  font-size: var(--t-md);
+}
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ==================== TOOLTIP ==================== */
 
 .tooltip-wrapper {

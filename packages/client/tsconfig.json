@@ -7,7 +7,8 @@
     "allowImportingTsExtensions": false,
     "moduleResolution": "Bundler",
     "paths": {
-      "@mjwz/engine": ["../engine/src/index.ts"]
+      "@mjwz/engine": ["../engine/src/index.ts"],
+      "@mjwz/server/types": ["../server/src/types.ts"]
     }
   },
   "include": ["src/**/*"]

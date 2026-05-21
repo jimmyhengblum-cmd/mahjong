@@ -10,6 +10,7 @@
     "engine:test": "npm --workspace @mjwz/engine run test",
     "engine:build": "npm --workspace @mjwz/engine run build",
     "server:dev": "npm --workspace @mjwz/server run dev",
+    "server:build": "npm --workspace @mjwz/server run build",
     "client:dev": "npm --workspace @mjwz/client run dev"
   },
   "devDependencies": {
