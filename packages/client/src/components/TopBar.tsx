@@ -1,6 +1,7 @@
-import { tileToString, type RoundState } from "@mjwz/engine";
+import { tileToString, type RoundState, type SeatIndex } from "@mjwz/engine";
 import { Tile } from "./Tile.js";
 import { Tooltip } from "./Tooltip.js";
+import { ScoreBoard } from "./ScoreBoard.js";
 
 interface TopBarProps {
   state: RoundState;
@@ -8,6 +9,10 @@ interface TopBarProps {
   audioEnabled: boolean;
   onToggleAudio: () => void;
   onOpenTutorial: () => void;
+  sessionScores: readonly number[];
+  sessionRoundCount: number;
+  humanSeat: SeatIndex;
+  onResetSession: () => void;
 }
 
 export function TopBar({
@@ -16,6 +21,10 @@ export function TopBar({
   audioEnabled,
   onToggleAudio,
   onOpenTutorial,
+  sessionScores,
+  sessionRoundCount,
+  humanSeat,
+  onResetSession,
 }: TopBarProps) {
   return (
     <header className="topbar">
@@ -40,6 +49,13 @@ export function TopBar({
             <span className="topbar-joker-val">{tileToString(state.ctx.jokerValue)}</span>
           </div>
         </Tooltip>
+
+        <ScoreBoard
+          scores={sessionScores}
+          roundCount={sessionRoundCount}
+          humanSeat={humanSeat}
+          onResetSession={onResetSession}
+        />
       </div>
 
       <div className="topbar-actions">

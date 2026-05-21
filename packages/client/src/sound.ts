@@ -16,13 +16,29 @@ export type SoundName =
   | "turn"    // notification "à vous"
   | "lose";   // bot fait Hu
 
+const STORAGE_KEY = "mjwz-audio-enabled";
+
+function readStoredEnabled(): boolean {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY);
+    return v === null ? true : v === "1";
+  } catch {
+    return true;
+  }
+}
+
 class SoundManager {
   private ctx: AudioContext | null = null;
-  private enabled = true;
+  private enabled = readStoredEnabled();
   private masterVolume = 0.6;
 
   setEnabled(b: boolean) {
     this.enabled = b;
+    try {
+      localStorage.setItem(STORAGE_KEY, b ? "1" : "0");
+    } catch {
+      /* localStorage indisponible */
+    }
     if (b) this.ensureCtx();
   }
 

@@ -3,6 +3,7 @@ import {
   applyAction,
   botStep,
   checkHu,
+  computeScore,
   startRound,
   type ClaimIntent,
   type RoundAction,
@@ -29,7 +30,14 @@ export interface UseGameResult {
   isHumanTurn: boolean;
   isHumanReacting: boolean;
   humanReactionOptions: HumanReactionOptions;
+  /** Score cumulé par siège pour toute la session. */
+  sessionScores: readonly number[];
+  /** Nombre de manches jouées dans la session. */
+  sessionRoundCount: number;
+  /** Trigger qui s'incrémente quand le humain fait Hu (pour confettis). */
+  humanWinTrigger: number;
   newRound: () => void;
+  resetSession: () => void;
   discard: (tile: TileCode) => void;
   claim: (intent: ClaimIntent) => void;
   pass: () => void;
@@ -145,6 +153,48 @@ export function useGame(): UseGameResult {
     return () => clearTimeout(t);
   }, [announcement]);
 
+  // Session score tracking : à chaque fin de manche, applique le delta
+  const [sessionScores, setSessionScores] = useState<number[]>([0, 0, 0, 0]);
+  const [sessionRoundCount, setSessionRoundCount] = useState(0);
+  const [humanWinTrigger, setHumanWinTrigger] = useState(0);
+  const scoredRoundRef = useRef<number>(-1);
+  useEffect(() => {
+    if (state.phase.kind !== "ended") return;
+    // Évite de scorer 2× la même fin (StrictMode safety)
+    if (scoredRoundRef.current === dealCounter) return;
+    scoredRoundRef.current = dealCounter;
+
+    const result = state.phase.result;
+    const delta = [0, 0, 0, 0];
+    if (result.kind === "hu" && result.winner !== null && result.huResult) {
+      const score = computeScore({
+        huResult: result.huResult,
+        selfPick: result.discarder === null,
+        isDealer: result.winner === state.dealer,
+        dealerConsecutiveWins: 0,
+        heavenly: false,
+        earthly: false,
+        singleWait: false,
+        robKong: false,
+      });
+      delta[result.winner] = score.winnerNetGain;
+      if (result.discarder !== null) {
+        // 接炮 : seul le défausseur paie
+        delta[result.discarder] = -score.winnerNetGain;
+      } else {
+        // 自摸 : 3 perdants paient chacun perLoser
+        for (let i = 0; i < 4; i++) {
+          if (i !== result.winner) delta[i] = -score.perLoser;
+        }
+      }
+      if (result.winner === HUMAN_SEAT) {
+        setHumanWinTrigger((n) => n + 1);
+      }
+    }
+    setSessionScores((prev) => prev.map((s, i) => s + delta[i]!));
+    setSessionRoundCount((n) => n + 1);
+  }, [state, dealCounter]);
+
   const isHumanTurn =
     state.phase.kind !== "ended" &&
     (state.phase.kind === "discard" && state.phase.current === HUMAN_SEAT);
@@ -168,9 +218,17 @@ export function useGame(): UseGameResult {
     isHumanTurn,
     isHumanReacting,
     humanReactionOptions,
+    sessionScores,
+    sessionRoundCount,
+    humanWinTrigger,
     newRound: () => {
       dispatchRaw({ type: "newRound", seed: Date.now() });
       setDealCounter((c) => c + 1);
+    },
+    resetSession: () => {
+      setSessionScores([0, 0, 0, 0]);
+      setSessionRoundCount(0);
+      scoredRoundRef.current = -1;
     },
     discard: (tile) => dispatch({ type: "discard", seat: HUMAN_SEAT, tile }),
     claim: (intent) => dispatch({ type: "claim", seat: HUMAN_SEAT, intent }),

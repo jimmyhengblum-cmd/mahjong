@@ -11,6 +11,7 @@ import { WinningHandReveal } from "./components/WinningHandReveal.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import { RotationOverlay } from "./components/RotationOverlay.js";
 import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
+import { Confetti } from "./components/Confetti.js";
 import { sound } from "./sound.js";
 import type { SeatIndex } from "@mjwz/engine";
 
@@ -65,6 +66,10 @@ export function App() {
         audioEnabled={audioEnabled}
         onToggleAudio={toggleAudio}
         onOpenTutorial={() => setShowTutorial(true)}
+        sessionScores={game.sessionScores}
+        sessionRoundCount={game.sessionRoundCount}
+        humanSeat={game.humanSeat}
+        onResetSession={game.resetSession}
       />
 
       <main className="table">
@@ -134,6 +139,8 @@ export function App() {
       <ClaimAnnouncement announcement={game.announcement} />
 
       <WinningHandReveal state={state} humanSeat={game.humanSeat} onNewRound={game.newRound} />
+
+      <Confetti trigger={game.humanWinTrigger} />
 
       {showTutorial && <Tutorial onClose={closeTutorial} />}
     </div>
