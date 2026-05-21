@@ -5,6 +5,8 @@ import { CenterInfo } from "./components/CenterInfo.js";
 import { TopBar } from "./components/TopBar.js";
 import { ActionButtons } from "./components/ActionButtons.js";
 import { WinningHandReveal } from "./components/WinningHandReveal.js";
+import { WallStrip } from "./components/WallStrip.js";
+import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import type { SeatIndex } from "@mjwz/engine";
 
 const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
@@ -35,6 +37,8 @@ export function App() {
   return (
     <div className="app">
       <TopBar state={state} onNewRound={game.newRound} />
+
+      <WallStrip remaining={state.wall.tiles.length} />
 
       <main className="table">
         <div className="seat-north">
@@ -94,6 +98,8 @@ export function App() {
       <footer className="action-bar">
         <ActionButtons game={game} />
       </footer>
+
+      <ClaimAnnouncement announcement={game.announcement} />
 
       <WinningHandReveal state={state} humanSeat={game.humanSeat} onNewRound={game.newRound} />
     </div>

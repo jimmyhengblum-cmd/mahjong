@@ -28,7 +28,7 @@ html, body, #root {
 
 .app {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   height: 100%;
 }
 
@@ -156,46 +156,64 @@ html, body, #root {
   box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
 }
 
-/* ==================== WALL VISUAL ==================== */
+/* ==================== WALL STRIP (full visualization) ==================== */
 
-.wall-visual {
+.wall-strip {
+  background: var(--dim);
+  border-bottom: 1px solid rgba(241, 196, 15, 0.15);
+  padding: 6px 12px 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  background: rgba(0,0,0,0.3);
-  border-radius: 6px;
-  padding: 6px 12px;
-  min-width: 130px;
+  gap: 4px;
 }
-.wall-visual.wall-low { border: 1px solid rgba(232, 90, 79, 0.6); }
-.wall-icons { display: flex; gap: 2px; }
-.wall-tile-icon {
-  width: 8px;
-  height: 12px;
-  background: var(--tile-bg);
-  border: 1px solid #5a5a5a;
-  border-radius: 1px;
-  display: inline-block;
+.wall-strip-label {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
 }
-.wall-info { display: flex; flex-direction: column; line-height: 1.1; }
-.wall-label { font-size: 9px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.08em; }
-.wall-count { font-size: 18px; font-weight: 700; color: var(--accent); }
-.wall-low .wall-count { color: #e85a4f; }
-.wall-bar {
-  position: absolute;
-  bottom: 4px;
-  left: 12px;
-  right: 12px;
-  height: 2px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 1px;
-  overflow: hidden;
-  display: none; /* hidden inside topbar — implicit via icons */
+.wall-strip-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0;
+  text-transform: none;
 }
-.wall-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.4s ease;
+.wall-strip-count-total { font-size: 11px; opacity: 0.5; font-weight: 400; }
+.wall-strip-drawn {
+  font-size: 10px;
+  opacity: 0.55;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wall-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(34, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.wall-tile {
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(135deg, #3b8252 0%, #2a6b3d 100%);
+  border: 1px solid #1a4a26;
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 1px 1px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s backwards;
+  transition: opacity 0.35s, transform 0.35s, background 0.35s;
+}
+.wall-tile-drawn {
+  opacity: 0.2;
+  transform: scale(0.7);
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,0.1);
+  box-shadow: none;
 }
 
 /* ==================== TABLE ==================== */
@@ -536,6 +554,55 @@ html, body, #root {
 .action-tile-pass { background: var(--action-pass); border: 2px solid #888; }
 .action-tile-small { width: 60px; height: 52px; }
 .action-tile-small .action-tile-cn { font-size: 20px; }
+
+/* ==================== CLAIM ANNOUNCEMENT ==================== */
+
+.claim-announcement {
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.85);
+  border: 3px solid;
+  border-radius: 14px;
+  padding: 18px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  animation: claimPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+             claimFadeOut 0.4s ease 1.2s forwards;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+@keyframes claimPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  60% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes claimFadeOut {
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+.claim-ann-cn {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  font-family: "Noto Serif SC", serif;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+}
+.claim-ann-fr {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: white;
+}
+.claim-ann-seat {
+  font-size: 12px;
+  opacity: 0.7;
+  letter-spacing: 0.05em;
+}
 
 /* ==================== WIN OVERLAY ==================== */
 

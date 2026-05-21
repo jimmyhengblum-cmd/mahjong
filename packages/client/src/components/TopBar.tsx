@@ -1,6 +1,5 @@
 import { tileToString, type RoundState } from "@mjwz/engine";
 import { Tile } from "./Tile.js";
-import { WallVisual } from "./WallVisual.js";
 
 interface TopBarProps {
   state: RoundState;
@@ -18,7 +17,6 @@ export function TopBar({ state, onNewRound }: TopBarProps) {
           <Tile tile={state.ctx.jokerValue} size={36} role="joker" />
           <span className="topbar-joker-val">{tileToString(state.ctx.jokerValue)}</span>
         </div>
-        <WallVisual remaining={state.wall.tiles.length} />
       </div>
 
       <button onClick={onNewRound}>↺ Nouvelle manche</button>

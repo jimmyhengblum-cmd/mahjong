@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   applyAction,
   botStep,
   checkHu,
   startRound,
   type ClaimIntent,
-  type ExposedMeld,
   type RoundAction,
   type RoundEvent,
   type RoundState,
@@ -15,31 +14,32 @@ import {
 
 const HUMAN_SEAT: SeatIndex = 0;
 const BOT_TURN_DELAY_MS = 800;
+const ANNOUNCEMENT_DURATION_MS = 1600;
 
 export interface UseGameResult {
   state: RoundState;
   humanSeat: SeatIndex;
-  events: RoundEvent[];
+  events: readonly RoundEvent[];
+  /** Le dernier event "remarquable" (claim ou hu) à afficher en toast central, ou null. */
+  announcement: AnnouncementEvent | null;
   isHumanTurn: boolean;
   isHumanReacting: boolean;
   humanReactionOptions: HumanReactionOptions;
-  /** Démarrer une nouvelle manche. */
   newRound: () => void;
-  /** Défausser une tuile (depuis la phase discard du humain). */
   discard: (tile: TileCode) => void;
-  /** Réclamer la défausse adverse. */
   claim: (intent: ClaimIntent) => void;
-  /** Passer la réaction sur défausse adverse. */
   pass: () => void;
-  /** Auto-Hu (depuis la phase discard du humain). */
   selfHu: () => void;
 }
+
+export type AnnouncementEvent =
+  | { type: "claimed"; seat: SeatIndex; intent: ClaimIntent }
+  | { type: "hu"; seat: SeatIndex; selfPick: boolean };
 
 export interface HumanReactionOptions {
   canHu: boolean;
   canKong: boolean;
   canPong: boolean;
-  /** Si non-null : les paires de tuiles utilisables pour Chi. */
   chiUses: ReadonlyArray<readonly [TileCode, TileCode]>;
 }
 
@@ -50,21 +50,43 @@ const EMPTY_REACTION: HumanReactionOptions = {
   chiUses: [],
 };
 
-export function useGame(): UseGameResult {
-  const [state, setState] = useState<RoundState>(() => startRound(Date.now()));
-  const [events, setEvents] = useState<RoundEvent[]>([]);
-  const driverTimeout = useRef<number | null>(null);
+// -------------------- Reducer (pur, safe StrictMode) --------------------
 
-  // Émet un applyAction et accumule les events (toute la manche, reset au newRound)
+interface GameInternalState {
+  engine: RoundState;
+  events: RoundEvent[];
+}
+
+type GameReducerAction =
+  | { type: "apply"; action: RoundAction }
+  | { type: "newRound"; seed: number };
+
+function gameReducer(state: GameInternalState, ra: GameReducerAction): GameInternalState {
+  if (ra.type === "newRound") {
+    return { engine: startRound(ra.seed), events: [] };
+  }
+  const { state: nextEngine, events: newEvents } = applyAction(state.engine, ra.action);
+  return {
+    engine: nextEngine,
+    events: [...state.events, ...newEvents],
+  };
+}
+
+// -------------------- Hook --------------------
+
+export function useGame(): UseGameResult {
+  const [{ engine: state, events }, dispatchRaw] = useReducer(
+    gameReducer,
+    undefined,
+    () => ({ engine: startRound(Date.now()), events: [] })
+  );
+
   const dispatch = useCallback((action: RoundAction) => {
-    setState((prev) => {
-      const { state: next, events: newEvents } = applyAction(prev, action);
-      setEvents((evts) => [...evts, ...newEvents]);
-      return next;
-    });
+    dispatchRaw({ type: "apply", action });
   }, []);
 
-  // Driver de bots : déclenché à chaque changement d'état
+  // Driver de bots
+  const driverTimeout = useRef<number | null>(null);
   useEffect(() => {
     if (driverTimeout.current !== null) {
       clearTimeout(driverTimeout.current);
@@ -76,7 +98,6 @@ export function useGame(): UseGameResult {
         dispatch(action);
       }, BOT_TURN_DELAY_MS);
     } else if (state.phase.kind === "reaction" && state.phase.pending.size === 0) {
-      // Toutes réactions reçues → résoudre
       driverTimeout.current = window.setTimeout(() => {
         dispatch({ type: "resolve-reactions" });
       }, BOT_TURN_DELAY_MS);
@@ -85,6 +106,30 @@ export function useGame(): UseGameResult {
       if (driverTimeout.current !== null) clearTimeout(driverTimeout.current);
     };
   }, [state, dispatch]);
+
+  // Annonce de claim / hu
+  const [announcement, setAnnouncement] = useState<AnnouncementEvent | null>(null);
+  const lastSeenLen = useRef(0);
+  useEffect(() => {
+    if (events.length <= lastSeenLen.current) {
+      lastSeenLen.current = events.length; // reset après newRound
+      return;
+    }
+    const fresh = events.slice(lastSeenLen.current);
+    lastSeenLen.current = events.length;
+    for (const e of fresh) {
+      if (e.type === "claimed") {
+        setAnnouncement({ type: "claimed", seat: e.seat, intent: e.intent });
+      } else if (e.type === "hu") {
+        setAnnouncement({ type: "hu", seat: e.seat, selfPick: e.selfPick });
+      }
+    }
+  }, [events]);
+  useEffect(() => {
+    if (!announcement) return;
+    const t = setTimeout(() => setAnnouncement(null), ANNOUNCEMENT_DURATION_MS);
+    return () => clearTimeout(t);
+  }, [announcement]);
 
   const isHumanTurn =
     state.phase.kind !== "ended" &&
@@ -103,13 +148,11 @@ export function useGame(): UseGameResult {
     state,
     humanSeat: HUMAN_SEAT,
     events,
+    announcement,
     isHumanTurn,
     isHumanReacting,
     humanReactionOptions,
-    newRound: () => {
-      setEvents([]);
-      setState(startRound(Date.now()));
-    },
+    newRound: () => dispatchRaw({ type: "newRound", seed: Date.now() }),
     discard: (tile) => dispatch({ type: "discard", seat: HUMAN_SEAT, tile }),
     claim: (intent) => dispatch({ type: "claim", seat: HUMAN_SEAT, intent }),
     pass: () => dispatch({ type: "pass", seat: HUMAN_SEAT }),
@@ -117,26 +160,26 @@ export function useGame(): UseGameResult {
   };
 }
 
-/** Calcule la prochaine action automatique : pour un bot, ou un auto-pioche du humain en phase draw. */
+// -------------------- Bot driver --------------------
+
 function nextBotAction(state: RoundState, humanSeat: SeatIndex): RoundAction | null {
   if (state.phase.kind === "ended") return null;
 
   if (state.phase.kind === "draw") {
     if (state.phase.current === humanSeat) {
-      // On auto-pioche pour le humain (simplification de l'UX).
       return { type: "draw", seat: humanSeat };
     }
     return botStep(state, state.phase.current);
   }
 
   if (state.phase.kind === "discard") {
-    if (state.phase.current === humanSeat) return null; // attend l'input humain
+    if (state.phase.current === humanSeat) return null;
     return botStep(state, state.phase.current);
   }
 
   if (state.phase.kind === "reaction") {
     for (const seat of state.phase.pending) {
-      if (seat === humanSeat) continue; // attend l'input humain
+      if (seat === humanSeat) continue;
       return botStep(state, seat);
     }
     return null;
@@ -147,24 +190,19 @@ function nextBotAction(state: RoundState, humanSeat: SeatIndex): RoundAction | n
 
 // -------------------- Réactions humain --------------------
 
-function computeReactionOptions(
-  state: RoundState,
-  seat: SeatIndex
-): HumanReactionOptions {
+function computeReactionOptions(state: RoundState, seat: SeatIndex): HumanReactionOptions {
   if (state.phase.kind !== "reaction") return EMPTY_REACTION;
   const { discardedTile, discardedBy } = state.phase;
   const hand = state.hands[seat]!;
 
   const same = countInArray(hand.concealed, discardedTile);
 
-  // Hu check
   const huCheck = checkHu({
     concealed: [...hand.concealed, discardedTile],
     exposedMelds: hand.exposed,
     ctx: state.ctx,
   }).valid;
 
-  // Chi options (siège suivant uniquement + tuile numérique)
   const chiUses: Array<readonly [TileCode, TileCode]> = [];
   if (nextSeatIdx(discardedBy) === seat && isNumberedTile(discardedTile)) {
     const suit = discardedTile[0];
@@ -206,4 +244,3 @@ function isNumberedTile(t: TileCode): boolean {
 function nextSeatIdx(s: SeatIndex): SeatIndex {
   return ((s + 1) % 4) as SeatIndex;
 }
-
