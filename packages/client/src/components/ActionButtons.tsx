@@ -38,7 +38,7 @@ export function ActionButtons({ game }: ActionButtonsProps) {
             onClick={() => game.claim({ type: "chi", uses })}
           />
         ))}
-        <ActionTile variant="pass" cn="过" onClick={() => game.pass()} small />
+        <ActionTile variant="pass" cn="过" hint="Space" onClick={() => game.pass()} />
       </div>
     );
   }
@@ -67,7 +67,6 @@ interface ActionTileProps {
   cn: string;
   hint?: string;
   onClick: () => void;
-  small?: boolean;
 }
 
 const VARIANT_TOOLTIPS: Record<string, React.ReactNode> = {
@@ -96,7 +95,11 @@ const VARIANT_TOOLTIPS: Record<string, React.ReactNode> = {
       <br />Seul le siège suivant peut chi.
     </>
   ),
-  pass: <>Ne rien faire, le jeu continue.</>,
+  pass: (
+    <>
+      <strong>过 Passer</strong> <kbd>Space</kbd>
+    </>
+  ),
 };
 
 const VARIANT_LABELS: Record<string, string> = {
@@ -107,11 +110,11 @@ const VARIANT_LABELS: Record<string, string> = {
   pass: "Passer",
 };
 
-function ActionTile({ variant, cn, hint, onClick, small }: ActionTileProps) {
+function ActionTile({ variant, cn, hint, onClick }: ActionTileProps) {
   return (
     <Tooltip content={VARIANT_TOOLTIPS[variant]}>
       <button
-        className={`action-tile action-tile-${variant} ${small ? "action-tile-small" : ""}`}
+        className={`action-tile action-tile-${variant}`}
         onClick={onClick}
         aria-label={VARIANT_LABELS[variant]}
       >

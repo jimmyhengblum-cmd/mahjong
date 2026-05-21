@@ -25,9 +25,10 @@ export function TopBar({
       <h1>温州麻将</h1>
 
       <div className="topbar-info">
-        <Tooltip content={`财神 du jour · ${tileToString(state.ctx.jokerValue)}`} placement="bottom">
+        <Tooltip content={`财神 · ${tileToString(state.ctx.jokerValue)}`} placement="bottom">
           <div className="topbar-joker">
-            <Tile tile={state.ctx.jokerValue} size={32} role="joker" />
+            <span className="topbar-joker-label">财神</span>
+            <Tile tile={state.ctx.jokerValue} size={28} role="joker" />
           </div>
         </Tooltip>
       </div>
