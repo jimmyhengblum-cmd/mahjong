@@ -158,34 +158,43 @@ html, body, #root {
 
 /* ==================== WALL SQUARE (perspective 3D, vraie table) ==================== */
 
-/* Vue top-down à plat (comme une vraie table photographiée d'en haut) */
+/* Vue top-down à plat — grid 3×3 où N/S spannent la largeur ; les coins
+   du carré sont formés par les extrémités des murs N et S, exactement
+   comme dans la photo de référence. */
 .wall-square {
-  position: relative;
-  width: 100%;
-  max-width: 560px;
-  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "north north north"
+    "west  center east"
+    "south south south";
+  width: fit-content;
+  max-width: 100%;
   margin: 0 auto;
+  --wall-tile-short: 22px;
+  --wall-tile-long: 30px;
 }
 
-.wall-3d-wrapper {
-  position: absolute;
-  inset: 0;
-}
+.wall-side-north { grid-area: north; }
+.wall-side-south { grid-area: south; }
+.wall-side-east  { grid-area: east;  }
+.wall-side-west  { grid-area: west;  }
 
 .wall-square-inside {
-  position: absolute;
-  inset: 64px 72px 64px 72px;
+  grid-area: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  z-index: 2;
+  padding: 12px;
+  min-width: 280px;
+  min-height: 260px;
 }
 
-/* Côtés du mur (4 sides du périmètre) */
+/* Côtés du mur (grid items, plus de position absolute) */
 .wall-side {
-  position: absolute;
   display: grid;
   gap: 1px;
   border: 2px solid transparent;
@@ -196,26 +205,15 @@ html, body, #root {
 }
 
 .wall-side-north, .wall-side-south {
-  left: 50%;
-  transform: translateX(-50%);
-  grid-template-columns: repeat(17, 1fr);
-  grid-template-rows: repeat(2, auto);
-  width: calc(100% - 80px);
+  grid-template-columns: repeat(17, var(--wall-tile-short));
+  grid-template-rows: repeat(2, var(--wall-tile-long));
 }
-.wall-side-north { top: 0; }
-.wall-side-south { bottom: 0; }
-
 .wall-side-east, .wall-side-west {
-  top: 50%;
-  transform: translateY(-50%);
-  grid-template-columns: repeat(2, auto);
-  grid-template-rows: repeat(17, 1fr);
-  height: calc(100% - 80px);
+  grid-template-columns: repeat(2, var(--wall-tile-long));
+  grid-template-rows: repeat(17, var(--wall-tile-short));
 }
-.wall-side-east { right: 0; }
-.wall-side-west { left: 0; }
 
-/* Tuiles du mur */
+/* Tuiles du mur (orientation d'origine : N/S portrait, E/W landscape) */
 .wall-tile {
   background: linear-gradient(135deg, #3b8252 0%, #2a6b3d 100%);
   border: 1px solid #1a4a26;
@@ -224,18 +222,15 @@ html, body, #root {
   animation: fadeIn 0.3s backwards;
   transition: opacity 0.35s, transform 0.35s, background 0.35s;
 }
-/* Orientation : la tuile est posée avec son long côté ALIGNÉ avec le mur */
 .wall-side-north .wall-tile,
 .wall-side-south .wall-tile {
-  /* Mur horizontal → tuile en landscape (plus large que haute) */
-  width: 100%;
-  aspect-ratio: 4 / 3;
+  width: var(--wall-tile-short);
+  height: var(--wall-tile-long);
 }
 .wall-side-east .wall-tile,
 .wall-side-west .wall-tile {
-  /* Mur vertical → tuile en portrait (plus haute que large) */
-  height: 100%;
-  aspect-ratio: 3 / 4;
+  width: var(--wall-tile-long);
+  height: var(--wall-tile-short);
 }
 
 .wall-tile-drawn {
