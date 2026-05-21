@@ -15,13 +15,17 @@ import {
 const HUMAN_SEAT: SeatIndex = 0;
 const BOT_TURN_DELAY_MS = 800;
 const ANNOUNCEMENT_DURATION_MS = 1600;
+const DEAL_ANIMATION_MS = 1700;
 
 export interface UseGameResult {
   state: RoundState;
   humanSeat: SeatIndex;
   events: readonly RoundEvent[];
-  /** Le dernier event "remarquable" (claim ou hu) à afficher en toast central, ou null. */
   announcement: AnnouncementEvent | null;
+  /** True pendant l'animation de distribution (~1.7s après newRound). */
+  isDealing: boolean;
+  /** Compteur incrémenté à chaque nouvelle manche — utile comme key React. */
+  dealCounter: number;
   isHumanTurn: boolean;
   isHumanReacting: boolean;
   humanReactionOptions: HumanReactionOptions;
@@ -85,13 +89,23 @@ export function useGame(): UseGameResult {
     dispatchRaw({ type: "apply", action });
   }, []);
 
-  // Driver de bots
+  // Animation de distribution : isDealing=true pendant DEAL_ANIMATION_MS après newRound
+  const [dealCounter, setDealCounter] = useState(0);
+  const [isDealing, setIsDealing] = useState(true);
+  useEffect(() => {
+    setIsDealing(true);
+    const t = setTimeout(() => setIsDealing(false), DEAL_ANIMATION_MS);
+    return () => clearTimeout(t);
+  }, [dealCounter]);
+
+  // Driver de bots (pausé pendant l'animation de distribution)
   const driverTimeout = useRef<number | null>(null);
   useEffect(() => {
     if (driverTimeout.current !== null) {
       clearTimeout(driverTimeout.current);
       driverTimeout.current = null;
     }
+    if (isDealing) return;
     const action = nextBotAction(state, HUMAN_SEAT);
     if (action) {
       driverTimeout.current = window.setTimeout(() => {
@@ -105,7 +119,7 @@ export function useGame(): UseGameResult {
     return () => {
       if (driverTimeout.current !== null) clearTimeout(driverTimeout.current);
     };
-  }, [state, dispatch]);
+  }, [state, dispatch, isDealing]);
 
   // Annonce de claim / hu
   const [announcement, setAnnouncement] = useState<AnnouncementEvent | null>(null);
@@ -149,10 +163,15 @@ export function useGame(): UseGameResult {
     humanSeat: HUMAN_SEAT,
     events,
     announcement,
+    isDealing,
+    dealCounter,
     isHumanTurn,
     isHumanReacting,
     humanReactionOptions,
-    newRound: () => dispatchRaw({ type: "newRound", seed: Date.now() }),
+    newRound: () => {
+      dispatchRaw({ type: "newRound", seed: Date.now() });
+      setDealCounter((c) => c + 1);
+    },
     discard: (tile) => dispatch({ type: "discard", seat: HUMAN_SEAT, tile }),
     claim: (intent) => dispatch({ type: "claim", seat: HUMAN_SEAT, intent }),
     pass: () => dispatch({ type: "pass", seat: HUMAN_SEAT }),

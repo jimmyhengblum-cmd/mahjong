@@ -1,4 +1,5 @@
 import { useGame } from "./hooks/useGame.js";
+import { useHandOrder } from "./hooks/useHandOrder.js";
 import { Hand } from "./components/Hand.js";
 import { Opponent } from "./components/Opponent.js";
 import { CenterInfo } from "./components/CenterInfo.js";
@@ -14,6 +15,7 @@ export function App() {
   const game = useGame();
   const { state } = game;
   const human = state.hands[game.humanSeat]!;
+  const handOrder = useHandOrder(human.concealed);
 
   const currentSeat = getCurrentSeat(state);
   const turnOrderOf = (seat: SeatIndex): number => {
@@ -83,11 +85,14 @@ export function App() {
             {statusOf(0) === "claimed" && <span className="status-pill status-claimed">réagit</span>}
           </div>
           <Hand
-            concealed={human.concealed}
+            key={`deal-${game.dealCounter}`}
+            concealed={handOrder.order}
             exposed={human.exposed}
             jokerValue={state.ctx.jokerValue}
             onDiscard={game.isHumanTurn ? game.discard : undefined}
+            onReorder={handOrder.reorder}
             disabled={!game.isHumanTurn}
+            dealing={game.isDealing}
           />
         </div>
       </main>
