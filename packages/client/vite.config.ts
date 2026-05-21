@@ -13,5 +13,9 @@ export default defineConfig({
       "@mjwz/server/types": path.resolve(__dirname, "../server/src/types.ts"),
     },
   },
-  server: { port: 5173, open: true },
+  server: {
+    port: 5173,
+    open: true,
+    host: true, // écoute sur 0.0.0.0 pour permettre l'accès via LAN
+  },
 });
