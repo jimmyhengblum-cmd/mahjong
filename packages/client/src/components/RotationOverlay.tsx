@@ -31,40 +31,28 @@ export function RotationOverlay({ currentSeat, humanSeat }: RotationOverlayProps
       <defs>
         <marker
           id="arrow-gold-active"
-          markerWidth="4"
-          markerHeight="4"
-          refX="2"
-          refY="2"
-          orient="auto"
-        >
-          <polygon points="0 0, 4 2, 0 4" fill="#f1c40f" />
-        </marker>
-        <marker
-          id="arrow-gold-dim"
-          markerWidth="3"
-          markerHeight="3"
+          markerWidth="2.5"
+          markerHeight="2.5"
           refX="1.5"
-          refY="1.5"
+          refY="1.25"
           orient="auto"
         >
-          <polygon points="0 0, 3 1.5, 0 3" fill="rgba(241,196,15,0.35)" />
+          <polygon points="0 0, 2.5 1.25, 0 2.5" fill="rgba(241,196,15,0.55)" />
         </marker>
       </defs>
       {arcs.map((arc, i) => {
         const isActive = currentSeat !== null && arc.from === currentSeat;
-        const isHumanOutbound = currentSeat !== null && arc.from === humanSeat;
         return (
           <path
             key={i}
             d={arc.d}
-            stroke={isActive ? "#f1c40f" : "rgba(241,196,15,0.25)"}
-            strokeWidth={isActive ? 0.6 : 0.35}
-            strokeDasharray={isActive ? "2 1.5" : "1.2 1.2"}
+            stroke={isActive ? "rgba(241,196,15,0.5)" : "rgba(241,196,15,0.08)"}
+            strokeWidth={isActive ? 0.2 : 0.12}
+            strokeDasharray={isActive ? "1 0.8" : "0.6 0.8"}
             strokeLinecap="round"
             fill="none"
-            markerEnd={isActive ? "url(#arrow-gold-active)" : "url(#arrow-gold-dim)"}
+            markerEnd={isActive ? "url(#arrow-gold-active)" : undefined}
             className={isActive ? "rotation-arc-active" : "rotation-arc"}
-            data-human-outbound={isActive && isHumanOutbound ? "true" : undefined}
           />
         );
       })}

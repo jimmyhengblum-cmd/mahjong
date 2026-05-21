@@ -28,11 +28,11 @@ describe("Tuiles", () => {
     }
   });
 
-  it("affiche les tuiles en chinois", () => {
+  it("affiche les tuiles en chinois traditionnel", () => {
     expect(tileToString("p5")).toBe("5筒");
-    expect(tileToString("m9")).toBe("9万");
+    expect(tileToString("m9")).toBe("9萬");
     expect(tileToString("dw")).toBe("白");
-    expect(tileToString("we")).toBe("东");
+    expect(tileToString("we")).toBe("東");
   });
 });
 

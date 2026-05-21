@@ -71,11 +71,11 @@ export function tileNumber(tile: NumberedTile): number {
  */
 export function tileToString(tile: TileCode): string {
   if (isNumbered(tile)) {
-    const suit = { m: "万", p: "筒", s: "条" }[tileSuit(tile)];
+    const suit = { m: "萬", p: "筒", s: "條" }[tileSuit(tile)];
     return `${tileNumber(tile)}${suit}`;
   }
   return {
-    we: "东", ws: "南", ww: "西", wn: "北",
+    we: "東", ws: "南", ww: "西", wn: "北",
     dr: "中", dg: "發", dw: "白",
   }[tile];
 }
