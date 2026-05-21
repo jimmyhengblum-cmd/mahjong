@@ -159,46 +159,70 @@ const DOT_POSITIONS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
 ];
 
 function DotsFace({ n }: { n: number }) {
-  // p1 a un dessin central plus grand et orné
+  // p1 = grand médaillon orné central (bleu + rouge)
   if (n === 1) {
     return (
       <g>
-        <circle cx="30" cy="40" r="18" fill="#fbf7e8" stroke="#1a1a1a" strokeWidth="0.8" />
-        <circle cx="30" cy="40" r="15" fill="none" stroke="#1a1a1a" strokeWidth="0.4" strokeDasharray="2 1" />
-        <circle cx="30" cy="40" r="9" fill="none" stroke="#1a1a1a" strokeWidth="0.4" />
+        <circle cx="30" cy="40" r="20" fill="#fbf7e8" stroke="#1e3d7a" strokeWidth="1.2" />
+        <circle cx="30" cy="40" r="17" fill="none" stroke="#1e3d7a" strokeWidth="0.5" strokeDasharray="1.5 0.8" />
+        <circle cx="30" cy="40" r="12" fill="none" stroke="#c8201f" strokeWidth="0.5" />
+        <circle cx="30" cy="40" r="7" fill="none" stroke="#1e3d7a" strokeWidth="0.4" />
+        {/* 8 pétales autour */}
         {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
           const angle = (i * Math.PI) / 4;
-          const cx = 30 + Math.cos(angle) * 6;
-          const cy = 40 + Math.sin(angle) * 6;
-          return <circle key={i} cx={cx} cy={cy} r="1" fill="#c8201f" />;
+          const cx = 30 + Math.cos(angle) * 9.5;
+          const cy = 40 + Math.sin(angle) * 9.5;
+          return (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r="1.4"
+              fill={i % 2 === 0 ? "#c8201f" : "#1e3d7a"}
+            />
+          );
         })}
-        <circle cx="30" cy="40" r="2" fill="#c8201f" />
+        {/* Centre rouge */}
+        <circle cx="30" cy="40" r="2.5" fill="#c8201f" />
+        <circle cx="30" cy="40" r="1" fill="#fbf7e8" />
       </g>
     );
   }
   return (
     <>
       {DOT_POSITIONS[n]!.map(([x, y], i) => (
-        <FloralDot key={i} x={x} y={y} red={n === 5 && i === 2} />
+        <FloralDot key={i} x={x} y={y} accent={pickDotAccent(n, i)} />
       ))}
     </>
   );
 }
 
-function FloralDot({ x, y, red }: { x: number; y: number; red?: boolean }) {
-  const color = red ? "#c8201f" : "#1a1a1a";
+/** Choisit la couleur d'accent d'un cercle selon le numéro et la position. */
+function pickDotAccent(n: number, idx: number): "red" | "blue" {
+  // Traditions de coloration mahjong :
+  //   - p5 : le cercle central est rouge
+  //   - autres : alternance discrète pour donner du peps
+  if (n === 5 && idx === 2) return "red";
+  return idx % 2 === 0 ? "blue" : "red";
+}
+
+function FloralDot({ x, y, accent }: { x: number; y: number; accent: "red" | "blue" }) {
+  const outer = accent === "red" ? "#c8201f" : "#1e3d7a";
+  const center = "#c8201f";
   return (
     <g>
-      {/* Outer ring */}
-      <circle cx={x} cy={y} r="5" fill="#fbf7e8" stroke={color} strokeWidth="0.6" />
-      <circle cx={x} cy={y} r="3.5" fill="none" stroke={color} strokeWidth="0.3" />
-      {/* 4 petals around center */}
-      <circle cx={x} cy={y - 2.5} r="0.9" fill={color} opacity="0.65" />
-      <circle cx={x + 2.5} cy={y} r="0.9" fill={color} opacity="0.65" />
-      <circle cx={x} cy={y + 2.5} r="0.9" fill={color} opacity="0.65" />
-      <circle cx={x - 2.5} cy={y} r="0.9" fill={color} opacity="0.65" />
-      {/* Center */}
-      <circle cx={x} cy={y} r="0.9" fill={color} />
+      {/* Outer ring (couleur principale du cercle) */}
+      <circle cx={x} cy={y} r="5" fill="#fbf7e8" stroke={outer} strokeWidth="0.9" />
+      {/* Ring intérieur décoratif */}
+      <circle cx={x} cy={y} r="3.6" fill="none" stroke={outer} strokeWidth="0.35" strokeDasharray="0.6 0.4" />
+      {/* 4 pétales colorés en alternance */}
+      <circle cx={x} cy={y - 2.7} r="0.95" fill="#c8201f" />
+      <circle cx={x + 2.7} cy={y} r="0.95" fill="#157f3e" />
+      <circle cx={x} cy={y + 2.7} r="0.95" fill="#c8201f" />
+      <circle cx={x - 2.7} cy={y} r="0.95" fill="#157f3e" />
+      {/* Centre rouge bordé */}
+      <circle cx={x} cy={y} r="1.4" fill={center} />
+      <circle cx={x} cy={y} r="0.55" fill="#fbf7e8" />
     </g>
   );
 }
@@ -227,14 +251,22 @@ function BambooFace({ n }: { n: number }) {
     );
   }
   const arrangements: Record<number, Array<[number, number]>> = {
-    2: [[22, 30], [38, 30]],
-    3: [[15, 30], [30, 30], [45, 30]],
+    /* s2 : 2 bambous l'un au-dessus de l'autre (tradition) */
+    2: [[30, 22], [30, 58]],
+    /* s3 : 3 bambous verticaux alignés au centre */
+    3: [[30, 18], [30, 40], [30, 62]],
+    /* s4 : 4 coins */
     4: [[20, 22], [40, 22], [20, 58], [40, 58]],
+    /* s5 : 4 coins + 1 rouge central (X) */
     5: [[20, 22], [40, 22], [30, 40], [20, 58], [40, 58]],
+    /* s6 : 2 rangées de 3 */
     6: [[18, 22], [30, 22], [42, 22], [18, 58], [30, 58], [42, 58]],
-    7: [[15, 18], [30, 18], [45, 18], [30, 40], [20, 60], [30, 60], [40, 60]],
-    8: [[20, 18], [40, 18], [20, 33], [40, 33], [20, 47], [40, 47], [20, 62], [40, 62]],
-    9: [[15, 18], [30, 18], [45, 18], [15, 40], [30, 40], [45, 40], [15, 60], [30, 60], [45, 60]],
+    /* s7 : 3 en haut + 1 rouge centre + 3 en bas (lucky seven) */
+    7: [[15, 18], [30, 18], [45, 18], [30, 40], [15, 62], [30, 62], [45, 62]],
+    /* s8 : 4 colonnes de 2 (2 rangs de 4) */
+    8: [[14, 28], [25, 28], [36, 28], [47, 28], [14, 52], [25, 52], [36, 52], [47, 52]],
+    /* s9 : grille 3x3 */
+    9: [[15, 18], [30, 18], [45, 18], [15, 40], [30, 40], [45, 40], [15, 62], [30, 62], [45, 62]],
   };
   const arr = arrangements[n] ?? [];
   // Au centre du 5, le bâton est rouge (tradition)
@@ -248,25 +280,47 @@ function BambooFace({ n }: { n: number }) {
   );
 }
 
+/**
+ * Bambou style traditionnel : deux montants verticaux + barreaux horizontaux.
+ * Évoque les vrais brins de bambou avec leurs nœuds visibles.
+ */
 function BambooStick({ x, y, red }: { x: number; y: number; red?: boolean }) {
   const color = red ? "#c8201f" : "#157f3e";
-  const stroke = red ? "#8a1212" : "#0a3818";
+  const dark = red ? "#7a0e0e" : "#0a3818";
   return (
     <g>
-      <rect
-        x={x - 2.8}
-        y={y - 9}
-        width="5.6"
-        height="18"
-        rx="1.2"
-        fill={color}
-        stroke={stroke}
-        strokeWidth="0.4"
+      {/* Deux montants verticaux */}
+      <line
+        x1={x - 1.8}
+        y1={y - 9}
+        x2={x - 1.8}
+        y2={y + 9}
+        stroke={color}
+        strokeWidth="1.6"
+        strokeLinecap="round"
       />
-      {/* 3 joints horizontaux (segments du bambou) */}
-      <line x1={x - 2.8} y1={y - 4.5} x2={x + 2.8} y2={y - 4.5} stroke={stroke} strokeWidth="0.4" />
-      <line x1={x - 2.8} y1={y} x2={x + 2.8} y2={y} stroke={stroke} strokeWidth="0.4" />
-      <line x1={x - 2.8} y1={y + 4.5} x2={x + 2.8} y2={y + 4.5} stroke={stroke} strokeWidth="0.4" />
+      <line
+        x1={x + 1.8}
+        y1={y - 9}
+        x2={x + 1.8}
+        y2={y + 9}
+        stroke={color}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      {/* Barreaux horizontaux (nœuds du bambou) */}
+      {[-6.5, -2, 2, 6.5].map((dy, i) => (
+        <line
+          key={i}
+          x1={x - 2.8}
+          y1={y + dy}
+          x2={x + 2.8}
+          y2={y + dy}
+          stroke={dark}
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+      ))}
     </g>
   );
 }
