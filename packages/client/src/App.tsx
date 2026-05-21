@@ -7,6 +7,7 @@ import { TopBar } from "./components/TopBar.js";
 import { ActionButtons } from "./components/ActionButtons.js";
 import { WinningHandReveal } from "./components/WinningHandReveal.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
+import { RotationOverlay } from "./components/RotationOverlay.js";
 import type { SeatIndex } from "@mjwz/engine";
 
 const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
@@ -40,6 +41,8 @@ export function App() {
       <TopBar state={state} onNewRound={game.newRound} />
 
       <main className="table">
+        <RotationOverlay currentSeat={currentSeat} humanSeat={game.humanSeat} />
+
         <div className="seat-north">
           <Opponent
             label={SEAT_LABELS[2]!}
