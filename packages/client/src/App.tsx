@@ -2,23 +2,23 @@ import { useGame } from "./hooks/useGame.js";
 import { Hand } from "./components/Hand.js";
 import { Opponent } from "./components/Opponent.js";
 import { CenterInfo } from "./components/CenterInfo.js";
-import { Tile } from "./components/Tile.js";
-import { checkHu, type TileCode } from "@mjwz/engine";
+import { Tile, tileRole } from "./components/Tile.js";
+import { checkHu } from "@mjwz/engine";
 
 export function App() {
   const game = useGame();
   const { state } = game;
   const human = state.hands[game.humanSeat]!;
-  const opponents = [1, 2, 3] as const;
 
-  // Mapping siège → position visuelle (humain = sud)
-  // humain est siège 0 (East), mais on l'affiche au sud pour confort UX.
-  // Bots : siège 1 → ouest, siège 2 → nord, siège 3 → est.
-  const SEAT_LABELS = ["东 (vous)", "南", "西", "北"];
+  // Mapping siège → label affiché. Humain (siège 0 = East) est en bas.
+  const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
 
   const isCurrent = (seat: number): boolean => {
     if (state.phase.kind === "ended") return false;
-    if (state.phase.kind === "reaction") return state.phase.discardedBy === seat;
+    if (state.phase.kind === "reaction") {
+      // Pendant la phase reaction, "current" = sièges qui doivent encore réagir
+      return state.phase.pending.has(seat as 0 | 1 | 2 | 3);
+    }
     return (state.phase as any).current === seat;
   };
 
@@ -37,6 +37,7 @@ export function App() {
             concealedCount={state.hands[2]!.concealed.length}
             exposed={state.hands[2]!.exposed}
             discards={state.hands[2]!.discards}
+            jokerValue={state.ctx.jokerValue}
             isCurrent={isCurrent(2)}
           />
         </div>
@@ -48,6 +49,7 @@ export function App() {
             concealedCount={state.hands[1]!.concealed.length}
             exposed={state.hands[1]!.exposed}
             discards={state.hands[1]!.discards}
+            jokerValue={state.ctx.jokerValue}
             isCurrent={isCurrent(1)}
           />
         </div>
@@ -59,27 +61,30 @@ export function App() {
             concealedCount={state.hands[3]!.concealed.length}
             exposed={state.hands[3]!.exposed}
             discards={state.hands[3]!.discards}
+            jokerValue={state.ctx.jokerValue}
             isCurrent={isCurrent(3)}
           />
         </div>
 
         {/* Centre */}
-        <CenterInfo state={state} />
+        <CenterInfo state={state} events={game.events} />
 
         {/* Sud = humain (siège 0) */}
-        <div className="seat-south">
+        <div className={`seat-south ${isCurrent(0) ? "seat-active" : ""}`}>
+          <div className="seat-south-label">
+            {isCurrent(0) ? "▶ " : ""}{SEAT_LABELS[0]}
+          </div>
           {human.discards.length > 0 && (
             <div className="discards-row">
               {human.discards.map((t, i) => (
-                <span key={i}>
-                  <DiscardTile tile={t} />
-                </span>
+                <Tile key={i} tile={t} size={26} role={tileRole(t, state.ctx.jokerValue)} />
               ))}
             </div>
           )}
           <Hand
             concealed={human.concealed}
             exposed={human.exposed}
+            jokerValue={state.ctx.jokerValue}
             onDiscard={game.isHumanTurn ? game.discard : undefined}
             disabled={!game.isHumanTurn}
           />
@@ -93,10 +98,6 @@ export function App() {
       </footer>
     </div>
   );
-}
-
-function DiscardTile({ tile }: { tile: TileCode }) {
-  return <Tile tile={tile} size={22} />;
 }
 
 function ActionBar({ game }: { game: ReturnType<typeof useGame> }) {

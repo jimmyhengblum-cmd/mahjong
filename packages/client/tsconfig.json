@@ -5,7 +5,10 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true,
     "allowImportingTsExtensions": false,
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@mjwz/engine": ["../engine/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

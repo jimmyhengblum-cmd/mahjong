@@ -297,8 +297,13 @@ function doResolveReactions(state: RoundState): ApplyResult {
   }
 
   const { seat, intent } = winner;
+
+  // La tuile défaussée quitte physiquement la pile de défausses : elle est
+  // soit ajoutée à la main du gagnant (Hu), soit intégrée à un meld exposé.
+  const handsMinusDiscard = popLastDiscard(state.hands, discardedBy);
+
   if (intent.type === "hu") {
-    const claimant = state.hands[seat]!;
+    const claimant = handsMinusDiscard[seat]!;
     const concealedWithTile = sortTiles([...claimant.concealed, discardedTile]);
     const huResult = checkHu({
       concealed: concealedWithTile,
@@ -306,8 +311,13 @@ function doResolveReactions(state: RoundState): ApplyResult {
       ctx: state.ctx,
     });
     if (!huResult.valid) throw new Error("Hu réclamé mais main invalide.");
+    // Pour l'affichage final, la tuile gagnante est dans concealed.
+    const handsAtWin = replaceHand(handsMinusDiscard, seat, {
+      ...claimant,
+      concealed: concealedWithTile,
+    });
     return endRound(
-      state,
+      { ...state, hands: handsAtWin },
       { kind: "hu", winner: seat, discarder: discardedBy, huResult },
       [{ type: "hu", seat, huResult, selfPick: false, discarder: discardedBy }]
     );
@@ -315,12 +325,12 @@ function doResolveReactions(state: RoundState): ApplyResult {
 
   // Chi / Pong / Kong : forme la combinaison et passe la main à `seat`.
   const meld = buildMeld(state, seat, intent, discardedTile);
-  const hand = state.hands[seat]!;
+  const hand = handsMinusDiscard[seat]!;
   const tilesUsedFromHand = meldUsesFromHand(intent, discardedTile);
   let newConcealed = hand.concealed.slice();
   for (const t of tilesUsedFromHand) newConcealed = removeOne(newConcealed, t);
 
-  const newHands = replaceHand(state.hands, seat, {
+  const newHands = replaceHand(handsMinusDiscard, seat, {
     ...hand,
     concealed: newConcealed,
     exposed: [...hand.exposed, meld],
@@ -337,6 +347,18 @@ function doResolveReactions(state: RoundState): ApplyResult {
     },
     events: [{ type: "claimed", seat, intent, meld }],
   };
+}
+
+/** Retire la dernière tuile de la pile de défausses du siège donné. */
+function popLastDiscard(
+  hands: ReadonlyArray<PlayerHand>,
+  discarder: SeatIndex
+): PlayerHand[] {
+  const hand = hands[discarder]!;
+  return replaceHand(hands, discarder, {
+    ...hand,
+    discards: hand.discards.slice(0, -1),
+  });
 }
 
 // -------------------- Validation des claims --------------------

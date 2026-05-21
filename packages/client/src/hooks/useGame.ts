@@ -14,7 +14,7 @@ import {
 } from "@mjwz/engine";
 
 const HUMAN_SEAT: SeatIndex = 0;
-const BOT_TURN_DELAY_MS = 400;
+const BOT_TURN_DELAY_MS = 800;
 
 export interface UseGameResult {
   state: RoundState;

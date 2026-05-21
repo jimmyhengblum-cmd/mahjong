@@ -75,6 +75,57 @@ describe("Cycle draw / discard", () => {
   });
 });
 
+describe("Conservation des tuiles après claim", () => {
+  it("la tuile défaussée quitte la pile de défausses quand pongée", () => {
+    let s = startRound(42, 0);
+    s = forceHand(s, 0, ["m5", ...new Array(16).fill("p1") as any]);
+    s = forceHand(s, 2, ["m5", "m5", ...new Array(14).fill("p2") as any]);
+    s = applyAction(s, { type: "discard", seat: 0, tile: "m5" }).state;
+    expect(s.hands[0]!.discards).toEqual(["m5"]); // dans la pile pendant la phase reaction
+    s = applyAction(s, { type: "pass", seat: 1 }).state;
+    s = applyAction(s, { type: "claim", seat: 2, intent: { type: "pong" } }).state;
+    s = applyAction(s, { type: "pass", seat: 3 }).state;
+    s = applyAction(s, { type: "resolve-reactions" }).state;
+    // La tuile a quitté la pile de défausses (elle est dans le meld du siège 2)
+    expect(s.hands[0]!.discards).toEqual([]);
+    expect(s.hands[2]!.exposed[0]!.tiles).toEqual(["m5", "m5", "m5"]);
+  });
+
+  it("la tuile défaussée quitte la pile quand kongée (kong = 4 tuiles total)", () => {
+    let s = startRound(42, 0);
+    s = forceHand(s, 0, ["m5", ...new Array(16).fill("p1") as any]);
+    s = forceHand(s, 2, ["m5", "m5", "m5", ...new Array(13).fill("p2") as any]);
+    s = applyAction(s, { type: "discard", seat: 0, tile: "m5" }).state;
+    s = applyAction(s, { type: "pass", seat: 1 }).state;
+    s = applyAction(s, { type: "claim", seat: 2, intent: { type: "kong" } }).state;
+    s = applyAction(s, { type: "pass", seat: 3 }).state;
+    s = applyAction(s, { type: "resolve-reactions" }).state;
+    expect(s.hands[0]!.discards).toEqual([]);
+    expect(s.hands[2]!.exposed[0]!.tiles).toEqual(["m5", "m5", "m5", "m5"]);
+    // Total m5 visibles = exactement 4 (3 from hand + 1 from discard)
+  });
+
+  it("la tuile défaussée quitte la pile quand utilisée pour Hu", () => {
+    let s = startRound(42, 0);
+    s = forceHand(s, 0, ["m5", ...new Array(16).fill("p1") as any]);
+    s = forceHand(s, 2, [
+      "m5",
+      "p1","p1","p1",
+      "p4","p4","p4",
+      "s7","s7","s7",
+      "we","we","we",
+      "dr","dr","dr",
+    ]);
+    s = applyAction(s, { type: "discard", seat: 0, tile: "m5" }).state;
+    s = applyAction(s, { type: "pass", seat: 1 }).state;
+    s = applyAction(s, { type: "claim", seat: 2, intent: { type: "hu" } }).state;
+    s = applyAction(s, { type: "pass", seat: 3 }).state;
+    s = applyAction(s, { type: "resolve-reactions" }).state;
+    expect(s.hands[0]!.discards).toEqual([]);
+    expect(s.hands[2]!.concealed).toContain("m5"); // ajoutée à la main du gagnant
+  });
+});
+
 describe("Claims — pong sur défausse", () => {
   it("un joueur avec 2 copies de la tuile peut pong", () => {
     // On force une main connue : remplace concealed du siège 2 par 2× "m5"

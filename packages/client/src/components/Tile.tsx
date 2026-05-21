@@ -8,6 +8,13 @@ interface TileProps {
   hidden?: boolean;
   /** Highlight visuel (ex: la tuile gagnante). */
   highlight?: boolean;
+  /**
+   * Rôle visuel dans la manche en cours :
+   *  - "joker" : c'est un 财神 (wildcard) — fond doré
+   *  - "joker-value" : c'est un 白板 prenant la valeur du joker — fond bleu pâle
+   *  - undefined : tuile normale
+   */
+  role?: "joker" | "joker-value";
 }
 
 /**
@@ -21,11 +28,29 @@ interface TileProps {
  * - dg : 發 vert
  * - dw : tuile blanche (cadre uniquement)
  */
-export function Tile({ tile, size = 44, hidden, highlight }: TileProps) {
+export function Tile({ tile, size = 44, hidden, highlight, role }: TileProps) {
   const w = size;
   const h = Math.round(size * 1.35);
-  const stroke = highlight ? "#f1c40f" : "#4a4a4a";
-  const strokeWidth = highlight ? 2 : 1;
+
+  let fill = "#faf5e0"; // default ivoire
+  let stroke = "#4a4a4a";
+  let strokeWidth = 1;
+
+  if (hidden) {
+    fill = "#2c5f3a";
+  } else if (role === "joker") {
+    fill = "#fff4c4"; // jaune doré
+    stroke = "#d4a017";
+    strokeWidth = 2;
+  } else if (role === "joker-value") {
+    fill = "#e0eaff"; // bleu pâle
+    stroke = "#5577bb";
+    strokeWidth = 1.5;
+  }
+  if (highlight) {
+    stroke = "#f1c40f";
+    strokeWidth = Math.max(strokeWidth, 2.5);
+  }
 
   return (
     <svg
@@ -40,13 +65,28 @@ export function Tile({ tile, size = 44, hidden, highlight }: TileProps) {
         width="58"
         height="78"
         rx="6"
-        fill={hidden ? "#2c5f3a" : "#faf5e0"}
+        fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
+      {role === "joker" && (
+        <text x="6" y="14" fontSize="10" fontWeight="700" fill="#d4a017">
+          财
+        </text>
+      )}
       {!hidden && <TileFace tile={tile} />}
     </svg>
   );
+}
+
+/** Helper : détermine le rôle visuel d'une tuile dans une manche. */
+export function tileRole(
+  tile: TileCode,
+  jokerValue: TileCode
+): "joker" | "joker-value" | undefined {
+  if (tile === jokerValue) return "joker";
+  if (tile === "dw" && jokerValue !== "dw") return "joker-value";
+  return undefined;
 }
 
 function TileFace({ tile }: { tile: TileCode }) {

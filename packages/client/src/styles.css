@@ -69,7 +69,30 @@ html, body, #root {
   padding: 16px;
 }
 
-.seat-south { grid-area: south; }
+.seat-south {
+  grid-area: south;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+.seat-south.seat-active {
+  background: rgba(241, 196, 15, 0.08);
+  box-shadow: 0 0 0 1px rgba(241, 196, 15, 0.4);
+}
+.seat-south-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+.seat-south.seat-active .seat-south-label {
+  color: var(--accent);
+  opacity: 1;
+}
 .seat-north { grid-area: north; transform: rotate(180deg); }
 .seat-east  { grid-area: east;  display: flex; align-items: center; justify-content: flex-end; }
 .seat-west  { grid-area: west;  display: flex; align-items: center; justify-content: flex-start; }
@@ -84,17 +107,79 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
   text-align: center;
 }
 
-.center-info .joker {
-  font-size: 14px;
+.joker-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(241, 196, 15, 0.4);
+}
+.joker-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
   opacity: 0.8;
+  text-transform: uppercase;
+}
+.joker-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.joker-hint {
+  font-size: 11px;
+  opacity: 0.65;
 }
 
-.center-info .wall-count {
+.discarded-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(241, 196, 15, 0.12);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 18px;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(241, 196, 15, 0); }
+}
+.discarded-label {
   font-size: 12px;
+  font-weight: 600;
+}
+.discarded-hint {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.event-log {
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 12px;
+  border-radius: 4px;
+  max-width: 260px;
+  text-align: left;
+}
+.event-line {
+  opacity: 0.5;
+  line-height: 1.5;
+}
+.event-line.event-fresh {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.wall-count {
+  font-size: 11px;
   opacity: 0.6;
 }
 
