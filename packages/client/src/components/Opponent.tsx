@@ -9,6 +9,8 @@ interface OpponentProps {
   wind: string;
   /** Nom long pour le tooltip, ex: "南 Sud". */
   fullName: string;
+  /** Pseudo du joueur (ex: "Marie" ou "Bot 1"). */
+  playerName: string;
   concealedCount: number;
   exposed: readonly ExposedMeld[];
   jokerValue: TileCode;
@@ -20,6 +22,7 @@ interface OpponentProps {
 export function Opponent({
   wind,
   fullName,
+  playerName,
   concealedCount,
   exposed,
   jokerValue,
@@ -31,12 +34,13 @@ export function Opponent({
 
   return (
     <div className={`opponent opponent-${status}`}>
-      <Tooltip content={fullName} placement="bottom">
+      <Tooltip content={`${fullName} · ${playerName}`} placement="bottom">
         <div className="opponent-label">
           <span className={`turn-badge ${turnOrder === 1 ? "turn-badge-current" : ""}`}>
             {turnOrder}
           </span>
           <span className="opponent-wind">{wind}</span>
+          <span className="opponent-name">{playerName}</span>
           <span className="opponent-count">{concealedCount}</span>
           {statusTitle && (
             <span className={`status-dot status-dot-${status}`} title={statusTitle} />

@@ -22,6 +22,8 @@ interface GameBoardProps {
   game: UseGameResult;
   /** Le siège de l'utilisateur (0 pour solo, dynamique pour online). */
   humanSeat: SeatIndex;
+  /** Pseudo de chaque siège (4 entrées, indexé par SeatIndex). */
+  seatNames: readonly string[];
   onResetSession: () => void;
   /** Affiche un bouton "Quitter" qui appelle ce callback. */
   onExit?: () => void;
@@ -30,7 +32,13 @@ interface GameBoardProps {
 const SEAT_WINDS = ["东", "南", "西", "北"];
 const SEAT_FULL = ["东 Est", "南 Sud", "西 Ouest", "北 Nord"];
 
-export function GameBoard({ game, humanSeat, onResetSession, onExit }: GameBoardProps) {
+export function GameBoard({
+  game,
+  humanSeat,
+  seatNames,
+  onResetSession,
+  onExit,
+}: GameBoardProps) {
   const { state } = game;
   const human = state.hands[humanSeat]!;
   const handOrder = useHandOrder(human.concealed);
@@ -111,6 +119,7 @@ export function GameBoard({ game, humanSeat, onResetSession, onExit }: GameBoard
               <Opponent
                 wind={SEAT_WINDS[seat]!}
                 fullName={SEAT_FULL[seat]!}
+                playerName={seatNames[seat] ?? "?"}
                 concealedCount={state.hands[seat]!.concealed.length}
                 exposed={state.hands[seat]!.exposed}
                 jokerValue={state.ctx.jokerValue}
@@ -133,6 +142,7 @@ export function GameBoard({ game, humanSeat, onResetSession, onExit }: GameBoard
               {turnOrderOf(humanSeat)}
             </span>
             <span className="seat-south-wind">{SEAT_WINDS[humanSeat]}</span>
+            <span className="seat-south-name">{seatNames[humanSeat] ?? "你"}</span>
             <span className="seat-south-you">你</span>
             {statusOf(humanSeat) === "passed" && (
               <span className="status-dot status-dot-passed" title="A passé" />

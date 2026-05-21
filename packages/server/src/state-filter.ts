@@ -7,11 +7,24 @@ import type { RoundState, SeatIndex, TileCode } from "@mjwz/engine";
  */
 export function filterStateForSeat(state: RoundState, viewerSeat: SeatIndex): RoundState {
   const PLACEHOLDER: TileCode = "we";
+
+  // Quand la manche est terminée, on révèle toutes les mains. Plus rien à cacher
+  // et le client a besoin des vraies tuiles pour afficher la main gagnante.
+  if (state.phase.kind === "ended") {
+    return {
+      ...state,
+      wall: {
+        ...state.wall,
+        tiles: state.wall.tiles.map(() => PLACEHOLDER),
+      },
+      // hands non masquées
+    };
+  }
+
   return {
     ...state,
     wall: {
       ...state.wall,
-      // On masque le contenu mais on garde la longueur (pour l'UI mur restant).
       tiles: state.wall.tiles.map(() => PLACEHOLDER),
     },
     hands: state.hands.map((hand, i) =>
@@ -19,7 +32,6 @@ export function filterStateForSeat(state: RoundState, viewerSeat: SeatIndex): Ro
         ? hand
         : {
             ...hand,
-            // Masque le contenu mais garde la longueur (pour le compte de tuiles).
             concealed: hand.concealed.map(() => PLACEHOLDER),
           }
     ),

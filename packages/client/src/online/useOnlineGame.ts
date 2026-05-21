@@ -75,13 +75,16 @@ export function useOnlineGame(): UseOnlineGameResult {
     };
   }, []);
 
-  // Quand le state passe en "playing" (nouvelle manche), reset events + deal animation
+  // Détection de nouvelle manche : soit 1ère réception, soit transition
+  // "ended" → autre chose. À chaque nouveau round, reset events + deal animation.
   const prevPhaseKindRef = useRef<string | null>(null);
   useEffect(() => {
     if (!state) return;
     const kind = state.phase.kind;
-    if (prevPhaseKindRef.current === null && kind !== "ended") {
-      // 1ère réception : c'est le début d'une manche
+    const prev = prevPhaseKindRef.current;
+    const isFirstRound = prev === null && kind !== "ended";
+    const isNewRoundAfterEnd = prev === "ended" && kind !== "ended";
+    if (isFirstRound || isNewRoundAfterEnd) {
       setEvents([]);
       setDealCounter((c) => c + 1);
       setIsDealing(true);

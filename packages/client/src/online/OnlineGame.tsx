@@ -36,10 +36,17 @@ export function OnlineGame({ onExit }: OnlineGameProps) {
     },
   };
 
+  // Extrait les pseudos depuis le state de la room
+  const seatNames =
+    og.room?.seats.map((s) =>
+      s.kind === "human" ? s.name ?? "?" : s.kind === "bot" ? s.label ?? "Bot" : "vide"
+    ) ?? ["?", "?", "?", "?"];
+
   return (
     <GameBoard
       game={game}
       humanSeat={og.seat}
+      seatNames={seatNames}
       onResetSession={() => {}}
       onExit={handleExit}
     />
