@@ -1,5 +1,6 @@
 import type { useGame } from "../hooks/useGame.js";
 import { checkHu } from "@mjwz/engine";
+import { Tooltip } from "./Tooltip.js";
 
 interface ActionButtonsProps {
   game: ReturnType<typeof useGame>;
@@ -121,16 +122,47 @@ interface ActionTileProps {
   small?: boolean;
 }
 
+const VARIANT_TOOLTIPS: Record<string, React.ReactNode> = {
+  hu: (
+    <>
+      <strong>胡 Hu</strong> — Gagner la manche avec cette tuile.
+      <br />
+      Forme 5 combinaisons + 1 paire.
+    </>
+  ),
+  kong: (
+    <>
+      <strong>杠 Kong</strong> — 4 tuiles identiques.
+      <br />3 dans ta main + la défausse. Donne droit à 1 pioche bonus.
+    </>
+  ),
+  pong: (
+    <>
+      <strong>碰 Pong</strong> — 3 tuiles identiques.
+      <br />2 dans ta main + la défausse. Tu passes à jouer ensuite.
+    </>
+  ),
+  chi: (
+    <>
+      <strong>吃 Chi</strong> — Suite de 3 tuiles consécutives.
+      <br />Seul le siège suivant peut chi.
+    </>
+  ),
+  pass: <>Ne rien faire, le jeu continue au siège suivant.</>,
+};
+
 function ActionTile({ variant, cn, label, hint, onClick, small }: ActionTileProps) {
   return (
-    <button
-      className={`action-tile action-tile-${variant} ${small ? "action-tile-small" : ""}`}
-      onClick={onClick}
-      title={hint}
-    >
-      <span className="action-tile-cn">{cn}</span>
-      <span className="action-tile-label">{label}</span>
-      {hint && <span className="action-tile-hint">{hint}</span>}
-    </button>
+    <Tooltip content={VARIANT_TOOLTIPS[variant]}>
+      <button
+        className={`action-tile action-tile-${variant} ${small ? "action-tile-small" : ""}`}
+        onClick={onClick}
+        aria-label={label}
+      >
+        <span className="action-tile-cn">{cn}</span>
+        <span className="action-tile-label">{label}</span>
+        {hint && <span className="action-tile-hint">{hint}</span>}
+      </button>
+    </Tooltip>
   );
 }

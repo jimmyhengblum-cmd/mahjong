@@ -141,6 +141,11 @@ html, body, #root {
   color: var(--accent);
 }
 
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 .topbar button {
   background: var(--accent);
   border: none;
@@ -154,6 +159,19 @@ html, body, #root {
 .topbar button:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
+}
+.topbar .icon-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  min-width: 36px;
+}
+.topbar .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
 }
 
 /* ==================== WALL SQUARE (perspective 3D, vraie table) ==================== */

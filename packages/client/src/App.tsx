@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useGame } from "./hooks/useGame.js";
 import { useHandOrder } from "./hooks/useHandOrder.js";
+import { useGameSounds } from "./hooks/useGameSounds.js";
 import { Hand } from "./components/Hand.js";
 import { Opponent } from "./components/Opponent.js";
 import { CenterInfo } from "./components/CenterInfo.js";
@@ -8,6 +10,8 @@ import { ActionButtons } from "./components/ActionButtons.js";
 import { WinningHandReveal } from "./components/WinningHandReveal.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import { RotationOverlay } from "./components/RotationOverlay.js";
+import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
+import { sound } from "./sound.js";
 import type { SeatIndex } from "@mjwz/engine";
 
 const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
@@ -18,17 +22,34 @@ export function App() {
   const human = state.hands[game.humanSeat]!;
   const handOrder = useHandOrder(human.concealed);
 
+  // Sons : branche sur les events
+  useGameSounds(game.events, game.humanSeat, game.isHumanTurn, game.isHumanReacting);
+
+  // Tutorial : montre au 1er chargement, ré-ouvrable via le ?
+  const [showTutorial, setShowTutorial] = useState(() => !hasSeenTutorial());
+  const closeTutorial = () => {
+    setShowTutorial(false);
+    markTutorialSeen();
+  };
+
+  // Audio toggle
+  const [audioEnabled, setAudioEnabled] = useState(sound.isEnabled());
+  const toggleAudio = () => {
+    const next = !audioEnabled;
+    sound.setEnabled(next);
+    setAudioEnabled(next);
+  };
+
   const currentSeat = getCurrentSeat(state);
   const turnOrderOf = (seat: SeatIndex): number => {
     if (currentSeat === null) return 0;
     return ((seat - currentSeat + 4) % 4) + 1;
   };
 
-  // Statut d'un siège pendant la phase reaction (passé / a réagi / current / idle)
   const statusOf = (seat: SeatIndex): "idle" | "current" | "passed" | "claimed" => {
     if (state.phase.kind === "ended") return "idle";
     if (state.phase.kind === "reaction") {
-      if (seat === state.phase.discardedBy) return "current"; // qui vient de jouer
+      if (seat === state.phase.discardedBy) return "current";
       if (state.phase.claims.has(seat)) return "claimed";
       if (!state.phase.pending.has(seat)) return "passed";
       return "idle";
@@ -38,7 +59,13 @@ export function App() {
 
   return (
     <div className="app">
-      <TopBar state={state} onNewRound={game.newRound} />
+      <TopBar
+        state={state}
+        onNewRound={game.newRound}
+        audioEnabled={audioEnabled}
+        onToggleAudio={toggleAudio}
+        onOpenTutorial={() => setShowTutorial(true)}
+      />
 
       <main className="table">
         <RotationOverlay currentSeat={currentSeat} humanSeat={game.humanSeat} />
@@ -107,6 +134,8 @@ export function App() {
       <ClaimAnnouncement announcement={game.announcement} />
 
       <WinningHandReveal state={state} humanSeat={game.humanSeat} onNewRound={game.newRound} />
+
+      {showTutorial && <Tutorial onClose={closeTutorial} />}
     </div>
   );
 }
