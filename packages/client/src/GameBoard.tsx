@@ -191,6 +191,7 @@ export function GameBoard({
           scores={game.sessionScores}
           roundCount={game.sessionRoundCount}
           humanSeat={humanSeat}
+          seatNames={seatNames}
           onClose={() => setShowScores(false)}
           onReset={() => {
             onResetSession();
