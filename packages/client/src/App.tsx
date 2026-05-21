@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useGame } from "./hooks/useGame.js";
 import { useHandOrder } from "./hooks/useHandOrder.js";
 import { useGameSounds } from "./hooks/useGameSounds.js";
+import { useKeyboard } from "./hooks/useKeyboard.js";
 import { Hand } from "./components/Hand.js";
 import { Opponent } from "./components/Opponent.js";
 import { CenterInfo } from "./components/CenterInfo.js";
@@ -9,7 +10,7 @@ import { TopBar } from "./components/TopBar.js";
 import { ActionButtons } from "./components/ActionButtons.js";
 import { WinningHandReveal } from "./components/WinningHandReveal.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
-import { RotationOverlay } from "./components/RotationOverlay.js";
+import { ScoreOverlay } from "./components/ScoreOverlay.js";
 import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
 import { Confetti } from "./components/Confetti.js";
 import { sound } from "./sound.js";
@@ -42,6 +43,21 @@ export function App() {
     setAudioEnabled(next);
   };
 
+  // Score overlay (Tab toggle)
+  const [showScores, setShowScores] = useState(false);
+
+  // Raccourcis clavier
+  useKeyboard({
+    onTab: useCallback(() => setShowScores((s) => !s), []),
+    onSpace: useCallback(() => {
+      if (game.isHumanReacting) game.pass();
+    }, [game.isHumanReacting, game.pass]),
+    onEscape: useCallback(() => {
+      setShowScores(false);
+      setShowTutorial(false);
+    }, []),
+  });
+
   const currentSeat = getCurrentSeat(state);
   const turnOrderOf = (seat: SeatIndex): number => {
     if (currentSeat === null) return 0;
@@ -67,15 +83,10 @@ export function App() {
         audioEnabled={audioEnabled}
         onToggleAudio={toggleAudio}
         onOpenTutorial={() => setShowTutorial(true)}
-        sessionScores={game.sessionScores}
-        sessionRoundCount={game.sessionRoundCount}
-        humanSeat={game.humanSeat}
-        onResetSession={game.resetSession}
+        onToggleScores={() => setShowScores((s) => !s)}
       />
 
       <main className="table">
-        <RotationOverlay currentSeat={currentSeat} humanSeat={game.humanSeat} />
-
         <div className="seat-north">
           <Opponent
             wind={SEAT_WINDS[2]!}
@@ -146,6 +157,19 @@ export function App() {
       <WinningHandReveal state={state} humanSeat={game.humanSeat} onNewRound={game.newRound} />
 
       <Confetti trigger={game.humanWinTrigger} />
+
+      {showScores && (
+        <ScoreOverlay
+          scores={game.sessionScores}
+          roundCount={game.sessionRoundCount}
+          humanSeat={game.humanSeat}
+          onClose={() => setShowScores(false)}
+          onReset={() => {
+            game.resetSession();
+            setShowScores(false);
+          }}
+        />
+      )}
 
       {showTutorial && <Tutorial onClose={closeTutorial} />}
     </div>

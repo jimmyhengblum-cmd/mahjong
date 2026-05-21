@@ -741,12 +741,14 @@ html, body, #root {
   min-height: 76px;
   border-top: 1px solid var(--border-1);
 }
-.action-bar:empty { display: none; }
 
 .action-buttons {
   display: flex;
   gap: var(--s-3);
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 /* Boutons d'action style tuile */
@@ -952,6 +954,145 @@ html, body, #root {
 .win-cta:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 18px rgba(241, 196, 15, 0.5);
+}
+
+/* ==================== KBD chips ==================== */
+
+kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 1px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+/* ==================== SCORE OVERLAY (Tab) ==================== */
+
+.score-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 140;
+  animation: overlayFadeIn 0.2s ease;
+}
+.score-overlay-card {
+  background: linear-gradient(180deg, #244a2e 0%, #1a3923 100%);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-xl);
+  padding: var(--s-5);
+  min-width: 320px;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: winRevealCard 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.score-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--s-4);
+}
+.score-overlay-title {
+  font-size: var(--t-lg);
+  font-weight: 600;
+  color: var(--text);
+}
+.score-overlay-sub {
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.score-overlay-close {
+  background: transparent;
+  border: 1px solid var(--border-1);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.score-overlay-close:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.score-overlay-list {
+  display: grid;
+  gap: 4px;
+  margin-bottom: var(--s-4);
+}
+.score-overlay-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 10px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  transition: all 0.15s;
+}
+.score-overlay-row.is-human {
+  background: var(--accent-soft);
+  border-color: var(--border-accent);
+}
+.score-overlay-rank {
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.score-overlay-name {
+  font-size: var(--t-md);
+  color: var(--text);
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+}
+.score-overlay-value {
+  font-size: var(--t-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.score-overlay-value.is-pos { color: var(--positive); }
+.score-overlay-value.is-neg { color: var(--negative); }
+.score-overlay-value.is-zero { color: var(--text-tertiary); }
+
+.score-overlay-reset {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border-1);
+  color: var(--text-secondary);
+  padding: 9px;
+  border-radius: var(--r-md);
+  font-size: var(--t-md);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.score-overlay-reset:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border-2);
+}
+
+.score-overlay-hint {
+  margin-top: var(--s-3);
+  text-align: center;
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
 }
 
 /* ==================== CONFETTI ==================== */

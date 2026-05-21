@@ -1,8 +1,7 @@
-import { tileToString, type RoundState, type SeatIndex } from "@mjwz/engine";
+import { tileToString, type RoundState } from "@mjwz/engine";
 import { Tile } from "./Tile.js";
 import { Tooltip } from "./Tooltip.js";
-import { ScoreBoard } from "./ScoreBoard.js";
-import { HelpIcon, RefreshIcon, SoundOffIcon, SoundOnIcon } from "./Icons.js";
+import { ChartIcon, HelpIcon, RefreshIcon, SoundOffIcon, SoundOnIcon } from "./Icons.js";
 
 interface TopBarProps {
   state: RoundState;
@@ -10,10 +9,7 @@ interface TopBarProps {
   audioEnabled: boolean;
   onToggleAudio: () => void;
   onOpenTutorial: () => void;
-  sessionScores: readonly number[];
-  sessionRoundCount: number;
-  humanSeat: SeatIndex;
-  onResetSession: () => void;
+  onToggleScores: () => void;
 }
 
 export function TopBar({
@@ -22,44 +18,26 @@ export function TopBar({
   audioEnabled,
   onToggleAudio,
   onOpenTutorial,
-  sessionScores,
-  sessionRoundCount,
-  humanSeat,
-  onResetSession,
+  onToggleScores,
 }: TopBarProps) {
   return (
     <header className="topbar">
-      <Tooltip content="Mahjong de Wenzhou — 温州麻将" placement="bottom">
-        <h1>温州麻将</h1>
-      </Tooltip>
+      <h1>温州麻将</h1>
 
       <div className="topbar-info">
-        <Tooltip
-          content={
-            <>
-              <strong>财神 (joker)</strong> · {tileToString(state.ctx.jokerValue)}
-              <br />
-              Toutes ses copies sont wildcards.
-              <br />
-              Les 白板 prennent cette valeur.
-            </>
-          }
-          placement="bottom"
-        >
+        <Tooltip content={`财神 du jour · ${tileToString(state.ctx.jokerValue)}`} placement="bottom">
           <div className="topbar-joker">
             <Tile tile={state.ctx.jokerValue} size={32} role="joker" />
           </div>
         </Tooltip>
-
-        <ScoreBoard
-          scores={sessionScores}
-          roundCount={sessionRoundCount}
-          humanSeat={humanSeat}
-          onResetSession={onResetSession}
-        />
       </div>
 
       <div className="topbar-actions">
+        <Tooltip content={<>Scores <kbd>Tab</kbd></>} placement="bottom">
+          <button className="icon-btn" onClick={onToggleScores} aria-label="Scores de session">
+            <ChartIcon />
+          </button>
+        </Tooltip>
         <Tooltip content={audioEnabled ? "Couper le son" : "Activer le son"} placement="bottom">
           <button className="icon-btn" onClick={onToggleAudio} aria-label="Audio">
             {audioEnabled ? <SoundOnIcon /> : <SoundOffIcon />}
