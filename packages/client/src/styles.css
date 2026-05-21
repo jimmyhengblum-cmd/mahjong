@@ -1,0 +1,226 @@
+:root {
+  --bg: #1f4d2c;
+  --bg-felt: #2a6b3d;
+  --tile-bg: #faf5e0;
+  --tile-bg-hover: #fff9c4;
+  --tile-stroke: #4a4a4a;
+  --tile-shadow: rgba(0, 0, 0, 0.3);
+  --text: #ecebd9;
+  --dragon-red: #c8201f;
+  --dragon-green: #157f3e;
+  --dragon-blank: #d0d0d0;
+  --accent: #f1c40f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+.topbar {
+  padding: 8px 16px;
+  background: #143820;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar h1 {
+  font-size: 18px;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.topbar button {
+  background: var(--accent);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.table {
+  position: relative;
+  background: radial-gradient(ellipse at center, var(--bg-felt) 0%, var(--bg) 80%);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: 1fr 2fr 1fr;
+  grid-template-areas:
+    ".    north  ."
+    "west center east"
+    ".    south  .";
+  gap: 8px;
+  padding: 16px;
+}
+
+.seat-south { grid-area: south; }
+.seat-north { grid-area: north; transform: rotate(180deg); }
+.seat-east  { grid-area: east;  display: flex; align-items: center; justify-content: flex-end; }
+.seat-west  { grid-area: west;  display: flex; align-items: center; justify-content: flex-start; }
+
+.seat-east .opponent, .seat-west .opponent {
+  writing-mode: vertical-rl;
+}
+
+.center-info {
+  grid-area: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.center-info .joker {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.center-info .wall-count {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.hand {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hand .tile-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.hand .tile-btn:hover:not(:disabled) {
+  transform: translateY(-8px);
+}
+
+.hand .tile-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.exposed-melds {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  justify-content: center;
+}
+
+.meld {
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.opponent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.opponent-tiles {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 360px;
+}
+
+.opponent-label {
+  font-size: 12px;
+  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.opponent-label.current {
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+}
+
+.discards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 6px 0;
+  justify-content: center;
+}
+
+.action-bar {
+  background: #143820;
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  min-height: 56px;
+  align-items: center;
+}
+
+.action-bar button {
+  background: var(--accent);
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-bar button.secondary {
+  background: #555;
+  color: var(--text);
+}
+
+.action-bar button:disabled {
+  background: #444;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.action-bar .hint {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  padding: 20px 32px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  border: 2px solid var(--accent);
+  z-index: 10;
+  text-align: center;
+}
