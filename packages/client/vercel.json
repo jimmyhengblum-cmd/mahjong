@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd ../.. && npm install && npm --workspace @mjwz/client run build",
+  "outputDirectory": "dist",
+  "installCommand": "echo skip-install (handled in buildCommand)",
+  "framework": null
+}
