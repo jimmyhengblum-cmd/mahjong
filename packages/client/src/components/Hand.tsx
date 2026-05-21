@@ -25,6 +25,23 @@ export function Hand({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
+  /**
+   * Renvoie une classe pour décaler la tuile et créer le trou
+   * pendant le drag.
+   *   - Drag vers la droite : tuiles entre origine+1 et hover décalées à gauche
+   *   - Drag vers la gauche : tuiles entre hover et origine-1 décalées à droite
+   */
+  const getShiftClass = (idx: number): string => {
+    if (draggedIdx === null || dragOverIdx === null) return "";
+    if (idx === draggedIdx) return "tile-dragging";
+    if (draggedIdx < dragOverIdx) {
+      if (idx > draggedIdx && idx <= dragOverIdx) return "shift-left";
+    } else if (draggedIdx > dragOverIdx) {
+      if (idx >= dragOverIdx && idx < draggedIdx) return "shift-right";
+    }
+    return "";
+  };
+
   return (
     <div>
       {exposed.length > 0 && (
@@ -40,29 +57,22 @@ export function Hand({
       )}
       <div className={`hand ${dealing ? "hand-dealing" : ""}`}>
         {concealed.map((tile, i) => {
-          const isDragged = draggedIdx === i;
-          const isDragOver = dragOverIdx === i;
+          const shift = getShiftClass(i);
           return (
             <button
               key={i}
-              className={`tile-btn ${isDragged ? "tile-dragging" : ""} ${
-                isDragOver ? "tile-drag-over" : ""
-              }`}
+              className={`tile-btn ${shift}`}
               style={{ ["--idx" as any]: i }}
               draggable={!disabled && !!onReorder}
               onDragStart={(e) => {
                 setDraggedIdx(i);
                 e.dataTransfer.effectAllowed = "move";
-                // Indispensable pour que Firefox accepte le drag
                 e.dataTransfer.setData("text/plain", String(i));
               }}
               onDragOver={(e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
                 if (dragOverIdx !== i) setDragOverIdx(i);
-              }}
-              onDragLeave={() => {
-                if (dragOverIdx === i) setDragOverIdx(null);
               }}
               onDrop={(e) => {
                 e.preventDefault();
@@ -80,7 +90,7 @@ export function Hand({
                 if (draggedIdx === null && onDiscard) onDiscard(tile);
               }}
               disabled={disabled && !onReorder}
-              title={`${tile} (clic = défausser, drag = réordonner)`}
+              title={tile}
             >
               <Tile tile={tile} size={48} role={tileRole(tile, jokerValue)} />
             </button>

@@ -152,7 +152,7 @@ export function App() {
         <ActionButtons game={game} />
       </footer>
 
-      <ClaimAnnouncement announcement={game.announcement} />
+      <ClaimAnnouncement announcement={game.announcement} jokerValue={state.ctx.jokerValue} />
 
       <WinningHandReveal state={state} humanSeat={game.humanSeat} onNewRound={game.newRound} />
 

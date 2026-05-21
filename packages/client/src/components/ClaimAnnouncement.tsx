@@ -1,7 +1,10 @@
+import type { TileCode } from "@mjwz/engine";
 import type { AnnouncementEvent } from "../hooks/useGame.js";
+import { Tile, tileRole } from "./Tile.js";
 
 interface ClaimAnnouncementProps {
   announcement: AnnouncementEvent | null;
+  jokerValue: TileCode;
 }
 
 const SEAT_NAMES = ["东 Est", "南 Sud", "西 Ouest", "北 Nord"];
@@ -14,10 +17,11 @@ const ACTION_INFO: Record<string, { cn: string; fr: string; color: string }> = {
 };
 
 /**
- * Toast central transient quand un siège fait une action notable :
- * Chi / Pong / Kong / Hu. Visible ~1.6s puis disparaît.
+ * Toast central pour Chi / Pong / Kong / Hu. Affiche le caractère chinois
+ * en gros + les tuiles de la combinaison formée (sauf pour Hu) avec une
+ * animation séquentielle "tuile par tuile qui claque en place".
  */
-export function ClaimAnnouncement({ announcement }: ClaimAnnouncementProps) {
+export function ClaimAnnouncement({ announcement, jokerValue }: ClaimAnnouncementProps) {
   if (!announcement) return null;
 
   const seatName = SEAT_NAMES[announcement.seat]!;
@@ -26,18 +30,35 @@ export function ClaimAnnouncement({ announcement }: ClaimAnnouncementProps) {
       ? ACTION_INFO.hu!
       : ACTION_INFO[announcement.intent.type] ?? ACTION_INFO.pong!;
 
-  // key sur (type + seat + counter implicite via ts) pour re-mount à chaque nouvelle annonce
+  const meldTiles =
+    announcement.type === "claimed" ? announcement.meld.tiles : null;
+
   const key = `${announcement.type}-${announcement.seat}-${
     announcement.type === "claimed" ? announcement.intent.type : announcement.selfPick
   }-${Date.now()}`;
 
   return (
     <div className="claim-announcement" key={key} style={{ borderColor: info.color }}>
-      <div className="claim-ann-cn" style={{ color: info.color }}>
-        {info.cn}
+      <div className="claim-ann-text">
+        <span className="claim-ann-cn" style={{ color: info.color }}>
+          {info.cn}
+        </span>
+        <span className="claim-ann-fr">{info.fr}</span>
       </div>
-      <div className="claim-ann-fr">{info.fr} !</div>
       <div className="claim-ann-seat">{seatName}</div>
+      {meldTiles && (
+        <div className="claim-ann-meld">
+          {meldTiles.map((t, i) => (
+            <span
+              key={i}
+              className="claim-ann-tile"
+              style={{ animationDelay: `${0.15 + i * 0.08}s` }}
+            >
+              <Tile tile={t} size={40} role={tileRole(t, jokerValue)} />
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

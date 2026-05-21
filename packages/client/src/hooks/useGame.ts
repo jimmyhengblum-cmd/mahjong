@@ -6,6 +6,7 @@ import {
   computeScore,
   startRound,
   type ClaimIntent,
+  type ExposedMeld,
   type RoundAction,
   type RoundEvent,
   type RoundState,
@@ -45,7 +46,7 @@ export interface UseGameResult {
 }
 
 export type AnnouncementEvent =
-  | { type: "claimed"; seat: SeatIndex; intent: ClaimIntent }
+  | { type: "claimed"; seat: SeatIndex; intent: ClaimIntent; meld: ExposedMeld }
   | { type: "hu"; seat: SeatIndex; selfPick: boolean };
 
 export interface HumanReactionOptions {
@@ -141,7 +142,7 @@ export function useGame(): UseGameResult {
     lastSeenLen.current = events.length;
     for (const e of fresh) {
       if (e.type === "claimed") {
-        setAnnouncement({ type: "claimed", seat: e.seat, intent: e.intent });
+        setAnnouncement({ type: "claimed", seat: e.seat, intent: e.intent, meld: e.meld });
       } else if (e.type === "hu") {
         setAnnouncement({ type: "hu", seat: e.seat, selfPick: e.selfPick });
       }
