@@ -35,11 +35,15 @@ export function WallSquare({ remaining, total = 136, children }: WallSquareProps
 
   return (
     <div className="wall-square">
-      <WallSide name="north" startIdx={SIDE_TILES * 0} drawn={drawn} />
-      <WallSide name="east"  startIdx={SIDE_TILES * 1} drawn={drawn} />
-      <WallSide name="south" startIdx={SIDE_TILES * 2} drawn={drawn} />
-      <WallSide name="west"  startIdx={SIDE_TILES * 3} drawn={drawn} />
+      {/* Le wrapper porte la perspective 3D ; les 4 côtés conservent leurs transforms */}
+      <div className="wall-3d-wrapper">
+        <WallSide name="north" startIdx={SIDE_TILES * 0} drawn={drawn} />
+        <WallSide name="east"  startIdx={SIDE_TILES * 1} drawn={drawn} />
+        <WallSide name="south" startIdx={SIDE_TILES * 2} drawn={drawn} />
+        <WallSide name="west"  startIdx={SIDE_TILES * 3} drawn={drawn} />
+      </div>
 
+      {/* Le contenu intérieur reste à plat, par-dessus */}
       <div className="wall-square-inside">{children}</div>
     </div>
   );

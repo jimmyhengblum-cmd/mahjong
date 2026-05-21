@@ -164,26 +164,17 @@ html, body, #root {
   max-width: 560px;
   aspect-ratio: 1;
   margin: 0 auto;
-  perspective: 1400px;
-  perspective-origin: center 65%;
+  perspective: 1500px;
+  perspective-origin: center 60%;
 }
 
-/* Tout le contenu du mur est porté par une couche 3D inclinée */
-.wall-square::before {
-  content: "";
+/* Wrapper qui tilte les 4 murs en bloc — les côtés gardent leurs translate */
+.wall-3d-wrapper {
   position: absolute;
   inset: 0;
-  transform: rotateX(22deg);
-  transform-origin: center;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.wall-square > .wall-side {
+  transform: rotateX(20deg);
   transform-style: preserve-3d;
-  transform: rotateX(22deg);
-  transform-origin: center;
-  z-index: 1;
+  transform-origin: center center;
 }
 
 .wall-square-inside {
