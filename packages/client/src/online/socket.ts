@@ -3,7 +3,9 @@ import type {
   ClientToServerEvents,
   RoomPublicState,
   ServerToClientEvents,
+  WireState,
 } from "@mjwz/server/types";
+import type { SeatIndex } from "@mjwz/engine";
 
 /**
  * Résolution de l'URL serveur en ordre de priorité :
@@ -32,6 +34,14 @@ let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
  * initial qui a déjà été émis.
  */
 let _lastRoom: RoomPublicState | null = null;
+/**
+ * Dernier game:state reçu (wire + seat), conservé au niveau module.
+ * Même justification que _lastRoom : le serveur émet game:state dans la
+ * même tick que room:state quand la partie démarre — le Lobby reçoit
+ * room:state(playing) et démonte, OnlineGame se monte juste après et
+ * raterait game:state sans ce cache.
+ */
+let _lastGameState: { wire: WireState; seat: SeatIndex } | null = null;
 
 export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> {
   if (!socket) {
@@ -39,10 +49,13 @@ export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> 
       autoConnect: true,
       transports: ["websocket"],
     });
-    // Listener persistant attaché à la création — capture toutes les
-    // mises à jour de room même quand aucun composant n'écoute.
+    // Listeners persistants attachés à la création — capturent toutes
+    // les mises à jour même quand aucun composant n'écoute.
     socket.on("room:state", (r) => {
       _lastRoom = r;
+    });
+    socket.on("game:state", (wire, seat) => {
+      _lastGameState = { wire, seat };
     });
   }
   return socket;
@@ -53,10 +66,16 @@ export function getCachedRoom(): RoomPublicState | null {
   return _lastRoom;
 }
 
+/** Retourne le dernier game:state reçu, ou null si rien encore. */
+export function getCachedGameState(): { wire: WireState; seat: SeatIndex } | null {
+  return _lastGameState;
+}
+
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
     _lastRoom = null;
+    _lastGameState = null;
   }
 }

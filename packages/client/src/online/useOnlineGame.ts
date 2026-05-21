@@ -15,7 +15,7 @@ import type {
   HumanReactionOptions,
   UseGameResult,
 } from "../hooks/useGame.js";
-import { getCachedRoom, getSocket } from "./socket.js";
+import { getCachedGameState, getCachedRoom, getSocket } from "./socket.js";
 
 const ANNOUNCEMENT_DURATION_MS = 1600;
 
@@ -41,8 +41,16 @@ export function useOnlineGame(): UseOnlineGameResult {
   // Initialise avec le cache pour ne pas rater le room:state émis avant
   // que ce hook ne soit monté (Lobby → OnlineGame transition).
   const [room, setRoom] = useState<RoomPublicState | null>(() => getCachedRoom());
-  const [seat, setSeat] = useState<SeatIndex | null>(null);
-  const [state, setState] = useState<RoundState | null>(null);
+  // Hydrate seat + state depuis le cache pour ne pas rater le game:state
+  // émis avant que ce hook ne soit monté (Lobby → OnlineGame transition).
+  const [seat, setSeat] = useState<SeatIndex | null>(() => {
+    const cached = getCachedGameState();
+    return cached ? cached.seat : null;
+  });
+  const [state, setState] = useState<RoundState | null>(() => {
+    const cached = getCachedGameState();
+    return cached ? deserializeStateFromWire(cached.wire) : null;
+  });
   const [events, setEvents] = useState<RoundEvent[]>([]);
   const [dealCounter, setDealCounter] = useState(0);
   const [isDealing, setIsDealing] = useState(false);
