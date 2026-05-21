@@ -1,0 +1,15 @@
+# Render Blueprint config — déploie le serveur Mahjong Wenzhou
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: mjwz-server
+    runtime: node
+    plan: free
+    region: frankfurt # le plus proche de l'Europe
+    buildCommand: npm install && npm run engine:build && npm run server:build
+    startCommand: npm --workspace @mjwz/server run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+    healthCheckPath: /health
+    # Le free tier dort après 15 min d'inactivité. Premier appel = wake-up ~30s.
