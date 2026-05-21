@@ -48,11 +48,11 @@ export function Opponent({
         </div>
       </Tooltip>
       {exposed.length > 0 && (
-        <div className="exposed-melds">
+        <div className={`exposed-melds exposed-melds-${exposed.length}`}>
           {exposed.map((meld, i) => (
             <div className="meld" key={i}>
               {meld.tiles.map((t, j) => (
-                <Tile key={j} tile={t} size={26} role={tileRole(t, jokerValue)} />
+                <Tile key={j} tile={t} size={20} role={tileRole(t, jokerValue)} />
               ))}
             </div>
           ))}

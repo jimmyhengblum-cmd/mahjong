@@ -810,12 +810,32 @@ html, body, #root {
   filter: none;
 }
 
+/* Disposition des melds exposés. Quand un joueur en accumule plusieurs,
+   on bascule en grid 2 colonnes pour rester compact même avec 4 melds. */
 .exposed-melds {
   display: flex;
-  gap: var(--s-2);
+  gap: 4px;
   margin-bottom: var(--s-1);
   justify-content: center;
   flex-wrap: wrap;
+  max-width: 100%;
+}
+/* 3-4 melds : grid 2 cols pour éviter les rangées de taille inégale */
+.exposed-melds-3,
+.exposed-melds-4 {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 3px;
+  justify-content: center;
+  justify-items: center;
+}
+/* 5+ melds (rare en Wenzhou — max 5 combinaisons) : grid 3 cols */
+.exposed-melds-5 {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  justify-content: center;
+  justify-items: center;
 }
 
 /* Animation "meld qui pop" — quand un bot vient de claim, le meld qui
@@ -839,7 +859,7 @@ html, body, #root {
 .meld {
   display: flex;
   gap: 1px;
-  padding: 3px;
+  padding: 2px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: var(--r-sm);
   animation: meldPop 0.55s cubic-bezier(0.34, 1.5, 0.64, 1) backwards;
