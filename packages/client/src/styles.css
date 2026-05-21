@@ -122,23 +122,11 @@ html, body, #root {
 .topbar-joker {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(241, 196, 15, 0.1);
-  border: 1.5px solid rgba(241, 196, 15, 0.5);
+  background: rgba(241, 196, 15, 0.08);
+  border: 1px solid rgba(241, 196, 15, 0.35);
   border-radius: 8px;
-  padding: 4px 12px;
-}
-.topbar-joker-label {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  opacity: 0.8;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-.topbar-joker-val {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
+  padding: 3px 6px;
+  cursor: help;
 }
 
 .topbar-actions {
@@ -220,17 +208,25 @@ html, body, #root {
   box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
 }
 .topbar .icon-btn {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   padding: 6px 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   min-width: 36px;
 }
 .topbar .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.18);
   box-shadow: none;
+}
+.topbar .icon-btn-accent {
+  background: rgba(241, 196, 15, 0.18);
+  border-color: rgba(241, 196, 15, 0.5);
+  color: var(--accent);
+}
+.topbar .icon-btn-accent:hover {
+  background: rgba(241, 196, 15, 0.3);
 }
 
 /* ==================== WALL SQUARE (perspective 3D, vraie table) ==================== */
@@ -393,7 +389,7 @@ html, body, #root {
 .seat-south-passed { opacity: 0.7; }
 
 .seat-south-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.04em;
   opacity: 0.85;
@@ -401,10 +397,21 @@ html, body, #root {
   align-items: center;
   gap: 8px;
 }
+.seat-south-wind {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Noto Serif SC', serif;
+}
+.seat-south-you {
+  font-size: 11px;
+  opacity: 0.6;
+  letter-spacing: 0.05em;
+}
 .seat-south-current .seat-south-label {
   color: var(--accent);
   opacity: 1;
 }
+.seat-south-current .seat-south-you { opacity: 0.85; }
 
 /* ==================== OPPOSANTS ==================== */
 
@@ -423,19 +430,29 @@ html, body, #root {
 .opponent-claimed { background: rgba(52, 152, 219, 0.15); }
 
 .opponent-label {
-  font-size: 12px;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 4px 10px;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3px 8px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: help;
+}
+.opponent-wind {
+  font-weight: 700;
+  font-family: 'Noto Serif SC', serif;
+}
+.opponent-count {
+  opacity: 0.6;
+  font-size: 11px;
 }
 .opponent-current .opponent-label {
   background: var(--accent);
   color: #1f4d2c;
   font-weight: 700;
 }
+.opponent-current .opponent-count { opacity: 0.85; }
 
 .opponent-tiles {
   display: flex;
@@ -445,15 +462,15 @@ html, body, #root {
   max-width: 220px;
 }
 
-.status-pill {
-  margin-left: 6px;
-  padding: 1px 7px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 600;
+/* Petits dots de statut (passé / a réagi) — remplace les pills verbeuses */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
 }
-.status-passed { background: rgba(120,120,120,0.5); color: #ccc; }
-.status-claimed { background: rgba(52, 152, 219, 0.7); color: white; }
+.status-dot-passed { background: #888; }
+.status-dot-claimed { background: #4aa3df; box-shadow: 0 0 6px rgba(74, 163, 223, 0.6); }
 
 /* ==================== TURN BADGE ==================== */
 
@@ -502,17 +519,14 @@ html, body, #root {
 
 .discarded-panel {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  background: rgba(241, 196, 15, 0.12);
+  justify-content: center;
+  background: rgba(241, 196, 15, 0.1);
   border: 1.5px solid var(--accent);
   border-radius: 10px;
-  padding: 8px 14px;
+  padding: 6px;
   animation: pulse 1.4s ease-in-out infinite, bounceIn 0.4s;
 }
-.discarded-label { font-size: 11px; font-weight: 700; }
-.discarded-hint { font-size: 10px; opacity: 0.75; }
 
 /* ==================== ROTATION OVERLAY (arcs entre sièges) ==================== */
 

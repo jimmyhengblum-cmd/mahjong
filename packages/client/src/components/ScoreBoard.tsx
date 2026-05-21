@@ -16,19 +16,17 @@ export function ScoreBoard({ scores, roundCount, humanSeat, onResetSession }: Sc
       placement="bottom"
       content={
         <>
-          Scores cumulés de la session ({roundCount} manche{roundCount > 1 ? "s" : ""}).
+          Scores cumulés sur {roundCount} manche{roundCount > 1 ? "s" : ""}.
           <br />
-          Clique pour remettre à zéro.
+          Clic pour remettre à zéro.
         </>
       }
     >
       <button
         className="scoreboard"
         onClick={onResetSession}
-        aria-label="Réinitialiser le score de session"
+        aria-label="Score de session"
       >
-        <span className="scoreboard-round">M.{roundCount}</span>
-        <span className="scoreboard-divider" />
         {scores.map((score, i) => (
           <span
             key={i}

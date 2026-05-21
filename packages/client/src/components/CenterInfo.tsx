@@ -35,16 +35,12 @@ function DiscardedHighlight({ state }: { state: RoundState }) {
   if (state.phase.kind !== "reaction") return null;
   return (
     <div className="discarded-panel">
-      <div className="discarded-label">{SEAT_NAMES_SHORT[state.phase.discardedBy]} défausse</div>
       <Tile
         tile={state.phase.discardedTile}
-        size={48}
+        size={56}
         role={tileRole(state.phase.discardedTile, state.ctx.jokerValue)}
         highlight
       />
-      <div className="discarded-hint">
-        {state.phase.pending.size} en attente · {state.phase.claims.size} ont réagi
-      </div>
     </div>
   );
 }

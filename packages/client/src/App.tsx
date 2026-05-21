@@ -15,7 +15,8 @@ import { Confetti } from "./components/Confetti.js";
 import { sound } from "./sound.js";
 import type { SeatIndex } from "@mjwz/engine";
 
-const SEAT_LABELS = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
+const SEAT_WINDS = ["东", "南", "西", "北"];
+const SEAT_FULL = ["东 Est (vous)", "南 Sud", "西 Ouest", "北 Nord"];
 
 export function App() {
   const game = useGame();
@@ -77,7 +78,8 @@ export function App() {
 
         <div className="seat-north">
           <Opponent
-            label={SEAT_LABELS[2]!}
+            wind={SEAT_WINDS[2]!}
+            fullName={SEAT_FULL[2]!}
             concealedCount={state.hands[2]!.concealed.length}
             exposed={state.hands[2]!.exposed}
             jokerValue={state.ctx.jokerValue}
@@ -88,7 +90,8 @@ export function App() {
 
         <div className="seat-west">
           <Opponent
-            label={SEAT_LABELS[1]!}
+            wind={SEAT_WINDS[1]!}
+            fullName={SEAT_FULL[1]!}
             concealedCount={state.hands[1]!.concealed.length}
             exposed={state.hands[1]!.exposed}
             jokerValue={state.ctx.jokerValue}
@@ -99,7 +102,8 @@ export function App() {
 
         <div className="seat-east">
           <Opponent
-            label={SEAT_LABELS[3]!}
+            wind={SEAT_WINDS[3]!}
+            fullName={SEAT_FULL[3]!}
             concealedCount={state.hands[3]!.concealed.length}
             exposed={state.hands[3]!.exposed}
             jokerValue={state.ctx.jokerValue}
@@ -115,9 +119,10 @@ export function App() {
             <span className={`turn-badge ${turnOrderOf(0) === 1 ? "turn-badge-current" : ""}`}>
               {turnOrderOf(0)}
             </span>
-            {SEAT_LABELS[0]}
-            {statusOf(0) === "passed" && <span className="status-pill status-passed">passe</span>}
-            {statusOf(0) === "claimed" && <span className="status-pill status-claimed">réagit</span>}
+            <span className="seat-south-wind">{SEAT_WINDS[0]}</span>
+            <span className="seat-south-you">你</span>
+            {statusOf(0) === "passed" && <span className="status-dot status-dot-passed" title="A passé" />}
+            {statusOf(0) === "claimed" && <span className="status-dot status-dot-claimed" title="Réagit" />}
           </div>
           <Hand
             key={`deal-${game.dealCounter}`}

@@ -1,10 +1,14 @@
 import type { ExposedMeld, TileCode } from "@mjwz/engine";
 import { Tile, tileRole } from "./Tile.js";
+import { Tooltip } from "./Tooltip.js";
 
 type Status = "idle" | "current" | "passed" | "claimed";
 
 interface OpponentProps {
-  label: string;
+  /** Wind seul, ex: "南". */
+  wind: string;
+  /** Nom long pour le tooltip, ex: "南 Sud". */
+  fullName: string;
   concealedCount: number;
   exposed: readonly ExposedMeld[];
   jokerValue: TileCode;
@@ -14,29 +18,37 @@ interface OpponentProps {
 }
 
 export function Opponent({
-  label,
+  wind,
+  fullName,
   concealedCount,
   exposed,
   jokerValue,
   status,
   turnOrder,
 }: OpponentProps) {
+  const statusTitle =
+    status === "passed" ? "A passé" : status === "claimed" ? "Réagit" : undefined;
+
   return (
     <div className={`opponent opponent-${status}`}>
-      <div className="opponent-label">
-        <span className={`turn-badge ${turnOrder === 1 ? "turn-badge-current" : ""}`}>
-          {turnOrder}
-        </span>
-        {label} · {concealedCount}
-        {status === "passed" && <span className="status-pill status-passed">passe</span>}
-        {status === "claimed" && <span className="status-pill status-claimed">réagit</span>}
-      </div>
+      <Tooltip content={fullName} placement="bottom">
+        <div className="opponent-label">
+          <span className={`turn-badge ${turnOrder === 1 ? "turn-badge-current" : ""}`}>
+            {turnOrder}
+          </span>
+          <span className="opponent-wind">{wind}</span>
+          <span className="opponent-count">{concealedCount}</span>
+          {statusTitle && (
+            <span className={`status-dot status-dot-${status}`} title={statusTitle} />
+          )}
+        </div>
+      </Tooltip>
       {exposed.length > 0 && (
         <div className="exposed-melds">
           {exposed.map((meld, i) => (
             <div className="meld" key={i}>
               {meld.tiles.map((t, j) => (
-                <Tile key={j} tile={t} size={28} role={tileRole(t, jokerValue)} />
+                <Tile key={j} tile={t} size={26} role={tileRole(t, jokerValue)} />
               ))}
             </div>
           ))}
@@ -44,7 +56,7 @@ export function Opponent({
       )}
       <div className="opponent-tiles">
         {Array.from({ length: concealedCount }).map((_, i) => (
-          <Tile key={i} tile={"we"} hidden size={22} />
+          <Tile key={i} tile={"we"} hidden size={20} />
         ))}
       </div>
     </div>

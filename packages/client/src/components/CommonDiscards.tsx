@@ -22,20 +22,13 @@ export function CommonDiscards({ events, jokerValue, pendingDiscardIndex }: Comm
   const pile = derivePile(events);
 
   if (pile.length === 0) {
-    return (
-      <div className="common-discards-empty">
-        <span>Aucune défausse pour l'instant</span>
-      </div>
-    );
+    return <div className="common-discards common-discards-empty" />;
   }
 
   const lastIndex = pile.length - 1;
 
   return (
     <div className="common-discards">
-      <div className="common-discards-header">
-        <span>Tas central · {pile.length} défausse(s)</span>
-      </div>
       <div className="common-discards-pile">
         {pile.map((entry, i) => (
           <div
@@ -43,9 +36,8 @@ export function CommonDiscards({ events, jokerValue, pendingDiscardIndex }: Comm
             className={`discard-slot discard-seat-${entry.seat} ${
               i === lastIndex && pendingDiscardIndex !== null ? "discard-pending" : ""
             } ${i === pile.length - 1 ? "discard-just-arrived" : ""}`}
-            title={`Siège ${entry.seat}`}
           >
-            <Tile tile={entry.tile} size={28} role={tileRole(entry.tile, jokerValue)} />
+            <Tile tile={entry.tile} size={26} role={tileRole(entry.tile, jokerValue)} />
           </div>
         ))}
       </div>

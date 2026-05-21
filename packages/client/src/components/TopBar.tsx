@@ -28,25 +28,23 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <header className="topbar">
-      <h1>
-        温州麻将 <span className="topbar-sub">Mahjong de Wenzhou</span>
-      </h1>
+      <Tooltip content="Mahjong de Wenzhou (温州麻将)" placement="bottom">
+        <h1>温州麻将</h1>
+      </Tooltip>
 
       <div className="topbar-info">
         <Tooltip
           content={
             <>
-              <strong>财神 (joker)</strong> du jour : {tileToString(state.ctx.jokerValue)}.
+              <strong>财神 (joker)</strong> : {tileToString(state.ctx.jokerValue)}.
               <br />
-              Toutes les copies sont wildcards, et les 白板 prennent cette valeur.
+              Toutes ses copies sont wildcards, et les 白板 prennent cette valeur.
             </>
           }
           placement="bottom"
         >
           <div className="topbar-joker">
-            <span className="topbar-joker-label">财神</span>
             <Tile tile={state.ctx.jokerValue} size={36} role="joker" />
-            <span className="topbar-joker-val">{tileToString(state.ctx.jokerValue)}</span>
           </div>
         </Tooltip>
 
@@ -60,7 +58,7 @@ export function TopBar({
 
       <div className="topbar-actions">
         <Tooltip content={audioEnabled ? "Couper le son" : "Activer le son"} placement="bottom">
-          <button className="icon-btn" onClick={onToggleAudio} aria-label="Toggle audio">
+          <button className="icon-btn" onClick={onToggleAudio} aria-label="Audio">
             {audioEnabled ? "🔊" : "🔇"}
           </button>
         </Tooltip>
@@ -69,7 +67,11 @@ export function TopBar({
             ?
           </button>
         </Tooltip>
-        <button onClick={onNewRound}>↺ Nouvelle manche</button>
+        <Tooltip content="Nouvelle manche" placement="bottom">
+          <button className="icon-btn icon-btn-accent" onClick={onNewRound} aria-label="Nouvelle manche">
+            ↺
+          </button>
+        </Tooltip>
       </div>
     </header>
   );
