@@ -1,5 +1,9 @@
 import { io, Socket } from "socket.io-client";
-import type { ClientToServerEvents, ServerToClientEvents } from "@mjwz/server/types";
+import type {
+  ClientToServerEvents,
+  RoomPublicState,
+  ServerToClientEvents,
+} from "@mjwz/server/types";
 
 /**
  * Résolution de l'URL serveur en ordre de priorité :
@@ -21,19 +25,38 @@ const SERVER_URL = ((): string => {
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
+/**
+ * Dernier état de room reçu, conservé au niveau module — survit aux
+ * remount des composants (ex: Lobby → OnlineGame transition).
+ * C'est ce qui empêche les nouveaux subscribers de rater le room:state
+ * initial qui a déjà été émis.
+ */
+let _lastRoom: RoomPublicState | null = null;
+
 export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> {
   if (!socket) {
     socket = io(SERVER_URL, {
       autoConnect: true,
       transports: ["websocket"],
     });
+    // Listener persistant attaché à la création — capture toutes les
+    // mises à jour de room même quand aucun composant n'écoute.
+    socket.on("room:state", (r) => {
+      _lastRoom = r;
+    });
   }
   return socket;
+}
+
+/** Retourne le dernier room:state reçu, ou null si rien encore. */
+export function getCachedRoom(): RoomPublicState | null {
+  return _lastRoom;
 }
 
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
+    _lastRoom = null;
   }
 }

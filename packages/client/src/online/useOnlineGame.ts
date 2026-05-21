@@ -15,7 +15,7 @@ import type {
   HumanReactionOptions,
   UseGameResult,
 } from "../hooks/useGame.js";
-import { getSocket } from "./socket.js";
+import { getCachedRoom, getSocket } from "./socket.js";
 
 const ANNOUNCEMENT_DURATION_MS = 1600;
 
@@ -38,7 +38,9 @@ export type UseOnlineGameResult = Omit<UseGameResult, "humanSeat" | "resetSessio
  * Le client envoie ses actions via Socket.io et reçoit le state filtré.
  */
 export function useOnlineGame(): UseOnlineGameResult {
-  const [room, setRoom] = useState<RoomPublicState | null>(null);
+  // Initialise avec le cache pour ne pas rater le room:state émis avant
+  // que ce hook ne soit monté (Lobby → OnlineGame transition).
+  const [room, setRoom] = useState<RoomPublicState | null>(() => getCachedRoom());
   const [seat, setSeat] = useState<SeatIndex | null>(null);
   const [state, setState] = useState<RoundState | null>(null);
   const [events, setEvents] = useState<RoundEvent[]>([]);
