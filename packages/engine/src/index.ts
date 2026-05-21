@@ -5,3 +5,4 @@ export * from "./meld.js";
 export * from "./hu.js";
 export * from "./score.js";
 export * from "./round.js";
+export * from "./bot.js";
