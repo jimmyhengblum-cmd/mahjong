@@ -1,7 +1,7 @@
-import type { RoundEvent, RoundState, SeatIndex, TileCode } from "@mjwz/engine";
-import { tileToString } from "@mjwz/engine";
+import type { RoundEvent, RoundState, SeatIndex } from "@mjwz/engine";
 import { Tile, tileRole } from "./Tile.js";
 import { CommonDiscards } from "./CommonDiscards.js";
+import { WallSquare } from "./WallSquare.js";
 
 interface CenterInfoProps {
   state: RoundState;
@@ -16,20 +16,22 @@ export function CenterInfo({ state, events, humanSeat }: CenterInfoProps) {
 
   return (
     <div className="center-info">
-      {/* Boussole interactive orientée comme à l'écran */}
-      <TurnCompass currentSeat={currentSeat} humanSeat={humanSeat} state={state} />
+      <WallSquare remaining={state.wall.tiles.length}>
+        <div className="center-inside">
+          {/* Boussole orientée comme à l'écran */}
+          <TurnCompass currentSeat={currentSeat} humanSeat={humanSeat} state={state} />
 
-      {/* Réaction en cours */}
-      {state.phase.kind === "reaction" && (
-        <DiscardedHighlight state={state} />
-      )}
+          {/* Tuile en cours de réaction (gros) */}
+          {state.phase.kind === "reaction" && <DiscardedHighlight state={state} />}
 
-      {/* Tas commun des défausses */}
-      <CommonDiscards
-        events={events}
-        jokerValue={state.ctx.jokerValue}
-        pendingDiscardIndex={state.phase.kind === "reaction" ? -1 : null}
-      />
+          {/* Tas commun */}
+          <CommonDiscards
+            events={events}
+            jokerValue={state.ctx.jokerValue}
+            pendingDiscardIndex={state.phase.kind === "reaction" ? -1 : null}
+          />
+        </div>
+      </WallSquare>
     </div>
   );
 }
@@ -47,7 +49,7 @@ function DiscardedHighlight({ state }: { state: RoundState }) {
       <div className="discarded-label">{SEAT_NAMES_SHORT[state.phase.discardedBy]} défausse</div>
       <Tile
         tile={state.phase.discardedTile}
-        size={56}
+        size={52}
         role={tileRole(state.phase.discardedTile, state.ctx.jokerValue)}
         highlight
       />
@@ -58,16 +60,7 @@ function DiscardedHighlight({ state }: { state: RoundState }) {
   );
 }
 
-/**
- * Boussole orientée comme à l'écran :
- *   - Bas du compass    = humain (siège 0 = Est)
- *   - Gauche du compass = siège 1 (Sud)
- *   - Haut du compass   = siège 2 (Ouest)
- *   - Droite du compass = siège 3 (Nord)
- *
- * Chaque cercle illumine quand c'est au tour du joueur correspondant.
- * Le siège humain a une petite démarcation "你" pour qu'on le retrouve.
- */
+/** Boussole compacte (la grosse rotation visuelle est portée par le wall). */
 function TurnCompass({
   currentSeat,
   humanSeat,
@@ -77,17 +70,13 @@ function TurnCompass({
   humanSeat: SeatIndex;
   state: RoundState;
 }) {
-  // Mapping siège → position visuelle sur la boussole (top/right/bottom/left)
-  // En screen : humain = bottom-screen. La rotation visuelle est anti-horaire :
-  //   humain (0) bottom → seat 1 left → seat 2 top → seat 3 right
   const positions: Record<SeatIndex, { x: number; y: number }> = {
-    0: { x: 60, y: 98 }, // bottom (humain)
-    1: { x: 22, y: 60 }, // left
-    2: { x: 60, y: 22 }, // top
-    3: { x: 98, y: 60 }, // right
+    0: { x: 50, y: 82 },
+    1: { x: 18, y: 50 },
+    2: { x: 50, y: 18 },
+    3: { x: 82, y: 50 },
   };
 
-  // Statut de chaque siège pendant la phase de réaction
   const reactionPhase = state.phase.kind === "reaction" ? state.phase : null;
   const passedSet = new Set<SeatIndex>();
   const claimedSet = new Set<SeatIndex>();
@@ -101,27 +90,19 @@ function TurnCompass({
 
   return (
     <div className="turn-compass">
-      <svg width="140" height="140" viewBox="0 0 120 120">
-        <circle
-          cx="60"
-          cy="60"
-          r="50"
-          fill="rgba(0,0,0,0.25)"
-          stroke="rgba(241,196,15,0.3)"
-          strokeWidth="1"
-        />
-        {/* Arc directionnel (anti-horaire) */}
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="rgba(0,0,0,0.4)" stroke="rgba(241,196,15,0.25)" />
         <path
-          d="M 95 60 A 35 35 0 0 0 60 25"
+          d="M 80 50 A 30 30 0 0 0 50 20"
           fill="none"
-          stroke="rgba(241,196,15,0.5)"
-          strokeWidth="2"
-          strokeDasharray="3,3"
+          stroke="rgba(241,196,15,0.6)"
+          strokeWidth="1.5"
+          strokeDasharray="2,2"
           markerEnd="url(#arrowhead)"
         />
         <defs>
-          <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-            <polygon points="0 0, 6 3, 0 6" fill="rgba(241,196,15,0.7)" />
+          <marker id="arrowhead" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
+            <polygon points="0 0, 5 2.5, 0 5" fill="rgba(241,196,15,0.7)" />
           </marker>
         </defs>
 
@@ -136,7 +117,7 @@ function TurnCompass({
               <circle
                 cx={pos.x}
                 cy={pos.y}
-                r="16"
+                r="13"
                 fill={
                   isCurrent
                     ? "#f1c40f"
@@ -147,46 +128,37 @@ function TurnCompass({
                     : "rgba(255,255,255,0.12)"
                 }
                 stroke={isHuman ? "#fff" : "rgba(255,255,255,0.4)"}
-                strokeWidth={isHuman ? 2 : 1}
+                strokeWidth={isHuman ? 1.8 : 1}
               />
               <text
                 x={pos.x}
                 y={pos.y + 1}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fontSize="15"
+                fontSize="13"
                 fontWeight="700"
                 fill={isCurrent ? "#1f4d2c" : "#ecebd9"}
               >
                 {SEAT_NAMES_SHORT[seat]}
               </text>
-              {/* Marque "you" sous le siège humain */}
               {isHuman && (
                 <text
                   x={pos.x}
-                  y={pos.y + 28}
+                  y={pos.y + 22}
                   textAnchor="middle"
-                  fontSize="9"
+                  fontSize="8"
                   fontWeight="700"
                   fill="#f1c40f"
                 >
-                  你 vous
+                  你
                 </text>
               )}
-              {/* Indicateur passe / claim */}
-              {hasPassed && (
-                <text x={pos.x + 14} y={pos.y - 12} fontSize="11" fill="#888">✗</text>
-              )}
-              {hasClaimed && (
-                <text x={pos.x + 14} y={pos.y - 12} fontSize="11" fill="#3498db">!</text>
-              )}
+              {hasPassed && <text x={pos.x + 11} y={pos.y - 9} fontSize="9" fill="#888">✗</text>}
+              {hasClaimed && <text x={pos.x + 11} y={pos.y - 9} fontSize="9" fill="#3498db">!</text>}
             </g>
           );
         })}
       </svg>
-      <div className="turn-compass-legend">
-        ↺ Anti-horaire · {currentSeat !== null && currentSeat === humanSeat ? "À vous !" : "joue maintenant"}
-      </div>
     </div>
   );
 }

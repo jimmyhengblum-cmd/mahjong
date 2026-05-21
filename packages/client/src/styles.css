@@ -28,7 +28,7 @@ html, body, #root {
 
 .app {
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
   height: 100%;
 }
 
@@ -156,51 +156,60 @@ html, body, #root {
   box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
 }
 
-/* ==================== WALL STRIP (full visualization) ==================== */
+/* ==================== WALL SQUARE (vraie disposition mahjong) ==================== */
 
-.wall-strip {
-  background: var(--dim);
-  border-bottom: 1px solid rgba(241, 196, 15, 0.15);
-  padding: 6px 12px 8px;
+.wall-square {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.wall-square-inside {
+  position: absolute;
+  inset: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-}
-.wall-strip-label {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.8;
-}
-.wall-strip-count {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0;
-  text-transform: none;
-}
-.wall-strip-count-total { font-size: 11px; opacity: 0.5; font-weight: 400; }
-.wall-strip-drawn {
-  font-size: 10px;
-  opacity: 0.55;
-  letter-spacing: 0;
-  text-transform: none;
+  justify-content: center;
+  gap: 8px;
+  overflow: auto;
 }
 
-.wall-strip-grid {
+/* Côtés du mur (4 sides forming the perimeter) */
+.wall-side {
+  position: absolute;
   display: grid;
-  grid-template-columns: repeat(34, 1fr);
-  gap: 2px;
-  width: 100%;
-  max-width: 720px;
+  gap: 1px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.15);
 }
 
+.wall-side-north, .wall-side-south {
+  left: 50%;
+  transform: translateX(-50%);
+  grid-template-columns: repeat(17, 1fr);
+  grid-template-rows: repeat(2, auto);
+  width: calc(100% - 80px);
+}
+.wall-side-north { top: 0; }
+.wall-side-south { bottom: 0; }
+
+.wall-side-east, .wall-side-west {
+  top: 50%;
+  transform: translateY(-50%);
+  grid-template-columns: repeat(2, auto);
+  grid-template-rows: repeat(17, 1fr);
+  height: calc(100% - 80px);
+}
+.wall-side-east { right: 0; }
+.wall-side-west { left: 0; }
+
+/* Tuiles du mur */
 .wall-tile {
-  aspect-ratio: 3 / 4;
   background: linear-gradient(135deg, #3b8252 0%, #2a6b3d 100%);
   border: 1px solid #1a4a26;
   border-radius: 2px;
@@ -208,8 +217,19 @@ html, body, #root {
   animation: fadeIn 0.3s backwards;
   transition: opacity 0.35s, transform 0.35s, background 0.35s;
 }
+.wall-side-north .wall-tile,
+.wall-side-south .wall-tile {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+}
+.wall-side-east .wall-tile,
+.wall-side-west .wall-tile {
+  height: 100%;
+  aspect-ratio: 4 / 3;
+}
+
 .wall-tile-drawn {
-  opacity: 0.2;
+  opacity: 0.18;
   transform: scale(0.7);
   background: transparent;
   border: 1px dashed rgba(255,255,255,0.1);
@@ -345,12 +365,22 @@ html, body, #root {
 .center-info {
   grid-area: center;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px;
+  min-height: 0;
+}
+
+.center-inside {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
-  text-align: center;
-  padding: 8px;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
 }
 
 .discarded-panel {
@@ -383,10 +413,10 @@ html, body, #root {
 
 .common-discards {
   width: 100%;
-  max-width: 480px;
-  background: rgba(0,0,0,0.25);
-  border-radius: 8px;
-  padding: 8px 10px;
+  max-width: 380px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  padding: 6px 8px;
   animation: fadeIn 0.3s;
 }
 .common-discards-header {

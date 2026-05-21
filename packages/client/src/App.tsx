@@ -5,7 +5,6 @@ import { CenterInfo } from "./components/CenterInfo.js";
 import { TopBar } from "./components/TopBar.js";
 import { ActionButtons } from "./components/ActionButtons.js";
 import { WinningHandReveal } from "./components/WinningHandReveal.js";
-import { WallStrip } from "./components/WallStrip.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import type { SeatIndex } from "@mjwz/engine";
 
@@ -37,8 +36,6 @@ export function App() {
   return (
     <div className="app">
       <TopBar state={state} onNewRound={game.newRound} />
-
-      <WallStrip remaining={state.wall.tiles.length} />
 
       <main className="table">
         <div className="seat-north">
