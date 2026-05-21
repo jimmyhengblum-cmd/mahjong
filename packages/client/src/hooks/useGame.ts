@@ -46,8 +46,8 @@ export interface UseGameResult {
 }
 
 export type AnnouncementEvent =
-  | { type: "claimed"; seat: SeatIndex; intent: ClaimIntent; meld: ExposedMeld }
-  | { type: "hu"; seat: SeatIndex; selfPick: boolean };
+  | { id: number; type: "claimed"; seat: SeatIndex; intent: ClaimIntent; meld: ExposedMeld }
+  | { id: number; type: "hu"; seat: SeatIndex; selfPick: boolean };
 
 export interface HumanReactionOptions {
   canHu: boolean;
@@ -130,21 +130,35 @@ export function useGame(): UseGameResult {
     };
   }, [state, dispatch, isDealing]);
 
-  // Annonce de claim / hu
+  // Annonce de claim / hu — chaque announcement a un id stable (incrémenté
+  // une seule fois à la création) pour qu'on puisse l'utiliser comme key
+  // React sans déclencher de remount à chaque re-render.
   const [announcement, setAnnouncement] = useState<AnnouncementEvent | null>(null);
   const lastSeenLen = useRef(0);
+  const announcementIdRef = useRef(0);
   useEffect(() => {
     if (events.length <= lastSeenLen.current) {
-      lastSeenLen.current = events.length; // reset après newRound
+      lastSeenLen.current = events.length;
       return;
     }
     const fresh = events.slice(lastSeenLen.current);
     lastSeenLen.current = events.length;
     for (const e of fresh) {
       if (e.type === "claimed") {
-        setAnnouncement({ type: "claimed", seat: e.seat, intent: e.intent, meld: e.meld });
+        setAnnouncement({
+          id: ++announcementIdRef.current,
+          type: "claimed",
+          seat: e.seat,
+          intent: e.intent,
+          meld: e.meld,
+        });
       } else if (e.type === "hu") {
-        setAnnouncement({ type: "hu", seat: e.seat, selfPick: e.selfPick });
+        setAnnouncement({
+          id: ++announcementIdRef.current,
+          type: "hu",
+          seat: e.seat,
+          selfPick: e.selfPick,
+        });
       }
     }
   }, [events]);

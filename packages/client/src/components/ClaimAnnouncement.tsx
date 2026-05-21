@@ -33,12 +33,12 @@ export function ClaimAnnouncement({ announcement, jokerValue }: ClaimAnnouncemen
   const meldTiles =
     announcement.type === "claimed" ? announcement.meld.tiles : null;
 
-  const key = `${announcement.type}-${announcement.seat}-${
-    announcement.type === "claimed" ? announcement.intent.type : announcement.selfPick
-  }-${Date.now()}`;
-
   return (
-    <div className="claim-announcement" key={key} style={{ borderColor: info.color }}>
+    <div
+      className="claim-announcement"
+      key={announcement.id}
+      style={{ borderColor: info.color }}
+    >
       <div className="claim-ann-text">
         <span className="claim-ann-cn" style={{ color: info.color }}>
           {info.cn}
