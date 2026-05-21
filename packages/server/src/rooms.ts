@@ -171,7 +171,14 @@ export function applyRoomAction(
   }
 }
 
-/** Trouve l'action que le bot du siège `seat` veut faire. Null si rien. */
+/**
+ * Renvoie la prochaine action que le serveur peut jouer automatiquement.
+ *
+ *   - "draw" : on auto-pioche pour TOUT le monde (humains inclus) — il
+ *     n'y a aucun choix à faire à la pioche, donc on évite d'attendre
+ *     un humain pour rien.
+ *   - "discard" / "reaction" : seuls les bots agissent ici.
+ */
 export function nextBotActionForRoom(room: Room): RoundAction | null {
   if (!room.state) return null;
   const phase = room.state.phase;
@@ -186,7 +193,13 @@ export function nextBotActionForRoom(room: Room): RoundAction | null {
     return null;
   }
 
-  if (phase.kind === "draw" || phase.kind === "discard") {
+  // Auto-pioche pour le siège courant (humain ou bot)
+  if (phase.kind === "draw") {
+    return { type: "draw", seat: phase.current };
+  }
+
+  // Décision de défausse : bots uniquement
+  if (phase.kind === "discard") {
     if (isBot(room, phase.current)) {
       return botStep(room.state, phase.current);
     }
