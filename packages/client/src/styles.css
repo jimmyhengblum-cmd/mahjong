@@ -1450,28 +1450,35 @@ kbd {
   100% { opacity: 0; transform: translateY(-12px) scale(0.95); }
 }
 
+/* La bulle d'emote vit À L'INTÉRIEUR de la box (.opponent / .seat-south)
+   parce que les seats ont overflow:hidden (anti-bleed du layout).
+   Elle se place top-right au-dessus du label, avec un z-index pour
+   passer devant le label sans le masquer (la box garde sa structure). */
 .emote-bubble {
   position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 4px;
+  right: 4px;
   background: var(--surface-2);
-  border: 1px solid var(--border-2);
+  border: 1px solid var(--accent);
   border-radius: 999px;
   padding: 4px 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-  font-size: 22px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45), 0 0 0 2px var(--accent-soft);
+  font-size: 24px;
   line-height: 1;
   pointer-events: none;
   animation: emotePop 3s ease forwards;
-  z-index: 5;
+  z-index: 10;
   white-space: nowrap;
 }
 .emote-bubble-emoji {
   display: inline-block;
 }
-/* Pour le seat-south (humain), bulle positionnée au-dessus du label */
-.seat-south .emote-bubble { top: -36px; }
+/* Seat-south : un peu plus grosse parce que c'est nous (le focus visuel) */
+.seat-south .emote-bubble {
+  top: 4px;
+  right: 8px;
+  font-size: 28px;
+}
 .opponent { position: relative; }
 .seat-south { position: relative; }
 
