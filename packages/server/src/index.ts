@@ -41,6 +41,14 @@ import {
 
 const PORT = Number(process.env.PORT) || 3001;
 
+/** Compteur global pour les IDs de messages tchat (process-scoped). */
+let nextChatId = 1;
+
+/** Whitelist anti-abus des emotes acceptées. */
+const ALLOWED_EMOTES = new Set([
+  "😂", "😭", "😡", "😎", "🤯", "🤫", "👏",
+]);
+
 const app = express();
 app.use(cors());
 
@@ -324,6 +332,38 @@ io.on("connection", (socket) => {
     // (clear puis sync via tickBots, qui résout aussi les actions bot intermédiaires).
     scheduleBotTick(room);
     syncHumanWatchdog(room);
+  });
+
+  // -------- Chat --------
+  socket.on("chat:send", (rawText) => {
+    const code = socket.data.roomCode;
+    const seat = socket.data.seat;
+    if (!code || seat === undefined) return;
+    const room = getRoom(code);
+    if (!room) return;
+    const text = typeof rawText === "string" ? rawText.trim().slice(0, 200) : "";
+    if (!text) return;
+    const me = room.seats[seat]!;
+    if (me.kind !== "human") return; // bots ne tchatent pas
+    const msg = {
+      id: nextChatId++,
+      seat,
+      name: me.name,
+      text,
+      ts: Date.now(),
+    };
+    io.to(code).emit("chat:message", msg);
+  });
+
+  // -------- Emote --------
+  socket.on("emote:send", (emoji) => {
+    const code = socket.data.roomCode;
+    const seat = socket.data.seat;
+    if (!code || seat === undefined) return;
+    if (typeof emoji !== "string") return;
+    // Whitelist : seulement les 7 emotes connues (anti-flood/abus)
+    if (!ALLOWED_EMOTES.has(emoji)) return;
+    io.to(code).emit("emote:show", { seat, emoji });
   });
 
   socket.on("disconnect", () => {

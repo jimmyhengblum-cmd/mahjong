@@ -13,6 +13,8 @@ import { WinningHandReveal } from "./components/WinningHandReveal.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import { ScoreOverlay } from "./components/ScoreOverlay.js";
 import { TurnTimer } from "./components/TurnTimer.js";
+import { EmoteBubble } from "./components/EmoteBubble.js";
+import type { EmotesBySeat } from "./online/useRoomSocial.js";
 import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
 import { Confetti } from "./components/Confetti.js";
 import { SortIcon } from "./components/Icons.js";
@@ -27,6 +29,13 @@ interface GameBoardProps {
   seatNames: readonly string[];
   /** Décompte serveur (online uniquement, null sinon). */
   timer?: { seats: SeatIndex[]; deadlineMs: number } | null;
+  /** Emotes courantes par siège (online uniquement). */
+  emotes?: EmotesBySeat;
+  /** Slots optionnels (online) à intégrer dans la topbar / action-bar. */
+  topBarExtra?: React.ReactNode;
+  actionBarExtra?: React.ReactNode;
+  /** Overlay supplémentaire (ex: ChatDrawer rendu par-dessus tout). */
+  overlay?: React.ReactNode;
   onResetSession: () => void;
   /** Affiche un bouton "Quitter" qui appelle ce callback. */
   onExit?: () => void;
@@ -40,6 +49,10 @@ export function GameBoard({
   humanSeat,
   seatNames,
   timer,
+  emotes,
+  topBarExtra,
+  actionBarExtra,
+  overlay,
   onResetSession,
   onExit,
 }: GameBoardProps) {
@@ -113,6 +126,7 @@ export function GameBoard({
         onOpenTutorial={() => setShowTutorial(true)}
         onToggleScores={() => setShowScores((s) => !s)}
         onExit={onExit}
+        extraActions={topBarExtra}
       />
 
       <main className="table">
@@ -129,6 +143,7 @@ export function GameBoard({
                 jokerValue={state.ctx.jokerValue}
                 status={statusOf(seat)}
                 turnOrder={turnOrderOf(seat)}
+                emote={emotes?.[seat] ?? null}
               />
             </div>
           );
@@ -137,6 +152,12 @@ export function GameBoard({
         <CenterInfo state={state} events={game.events} humanSeat={humanSeat} />
 
         <div className={`seat-south seat-south-${statusOf(humanSeat)}`}>
+          {emotes?.[humanSeat] && (
+            <EmoteBubble
+              emoji={emotes[humanSeat]!.emoji}
+              id={emotes[humanSeat]!.id}
+            />
+          )}
           <div className="seat-south-label">
             <span
               className={`turn-badge ${
@@ -186,6 +207,7 @@ export function GameBoard({
           />
         )}
         <ActionButtons game={game} />
+        {actionBarExtra}
       </footer>
 
       <ClaimAnnouncement
@@ -212,6 +234,8 @@ export function GameBoard({
       )}
 
       {showTutorial && <Tutorial onClose={closeTutorial} />}
+
+      {overlay}
     </div>
   );
 }

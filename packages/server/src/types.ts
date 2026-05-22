@@ -111,6 +111,25 @@ export interface ServerToClientEvents {
   "timer:set": (payload: { seats: SeatIndex[]; deadlineMs: number }) => void;
   /** Plus de timer actif (phase changée, manche finie, etc.). */
   "timer:clear": () => void;
+  /** Message tchat broadcast à toute la room. */
+  "chat:message": (msg: ChatMessage) => void;
+  /** Emote (réaction emoji) envoyée par un joueur. Volatile : pas
+   *  d'historique côté client, juste un affichage flottant ~3s. */
+  "emote:show": (payload: { seat: SeatIndex; emoji: string }) => void;
+}
+
+/** Message de chat dans une room. */
+export interface ChatMessage {
+  /** ID unique côté serveur (clé React stable). */
+  id: number;
+  /** Siège de l'émetteur (0-3). */
+  seat: SeatIndex;
+  /** Pseudo (snapshot au moment du msg). */
+  name: string;
+  /** Texte (max 200 chars, trimmé serveur). */
+  text: string;
+  /** Timestamp serveur (ms). */
+  ts: number;
 }
 
 export interface ClientToServerEvents {
@@ -132,6 +151,10 @@ export interface ClientToServerEvents {
   "game:newRound": (cb: (resp: { ok: true } | { error: string }) => void) => void;
   /** Le joueur courant envoie son action (discard, claim, pass, etc.). */
   "game:action": (action: RoundAction) => void;
+  /** Envoie un message tchat. Le serveur ajoute seat/name/ts/id. */
+  "chat:send": (text: string) => void;
+  /** Envoie une emote. */
+  "emote:send": (emoji: string) => void;
 }
 
 export interface InterServerEvents {}

@@ -1,5 +1,6 @@
 import { io, Socket } from "socket.io-client";
 import type {
+  ChatMessage,
   ClientToServerEvents,
   RoomPublicState,
   ServerToClientEvents,
@@ -44,6 +45,9 @@ let _lastRoom: RoomPublicState | null = null;
 let _lastGameState: { wire: WireState; seat: SeatIndex } | null = null;
 /** Dernier état du watchdog d'inactivité humaine. */
 let _lastTimer: { seats: SeatIndex[]; deadlineMs: number } | null = null;
+/** Historique du tchat de la room courante (jusqu'à 100 derniers msgs). */
+let _chatHistory: ChatMessage[] = [];
+const CHAT_MAX_HISTORY = 100;
 
 export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> {
   if (!socket) {
@@ -65,6 +69,9 @@ export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> 
     socket.on("timer:clear", () => {
       _lastTimer = null;
     });
+    socket.on("chat:message", (msg) => {
+      _chatHistory = [..._chatHistory, msg].slice(-CHAT_MAX_HISTORY);
+    });
   }
   return socket;
 }
@@ -84,6 +91,11 @@ export function getCachedTimer(): { seats: SeatIndex[]; deadlineMs: number } | n
   return _lastTimer;
 }
 
+/** Snapshot de l'historique tchat. */
+export function getCachedChatHistory(): ChatMessage[] {
+  return _chatHistory;
+}
+
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
@@ -91,5 +103,6 @@ export function disconnectSocket() {
     _lastRoom = null;
     _lastGameState = null;
     _lastTimer = null;
+    _chatHistory = [];
   }
 }

@@ -11,6 +11,8 @@ interface TopBarProps {
   onOpenTutorial: () => void;
   onToggleScores: () => void;
   onExit?: () => void;
+  /** Slot pour boutons additionnels (ex: cloche tchat en mode online). */
+  extraActions?: React.ReactNode;
 }
 
 export function TopBar({
@@ -21,6 +23,7 @@ export function TopBar({
   onOpenTutorial,
   onToggleScores,
   onExit,
+  extraActions,
 }: TopBarProps) {
   return (
     <header className="topbar">
@@ -36,6 +39,7 @@ export function TopBar({
       </div>
 
       <div className="topbar-actions">
+        {extraActions}
         <Tooltip content={<>Scores <kbd>Tab</kbd></>} placement="bottom">
           <button className="icon-btn" onClick={onToggleScores} aria-label="Scores de session">
             <ChartIcon />

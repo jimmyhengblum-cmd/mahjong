@@ -1,6 +1,7 @@
 import type { ExposedMeld, TileCode } from "@mjwz/engine";
 import { Tile, tileRole } from "./Tile.js";
 import { Tooltip } from "./Tooltip.js";
+import { EmoteBubble } from "./EmoteBubble.js";
 
 type Status = "idle" | "current" | "passed" | "claimed";
 
@@ -17,6 +18,8 @@ interface OpponentProps {
   status: Status;
   /** Position dans l'ordre de jeu (1 = joue maintenant). */
   turnOrder: number;
+  /** Emote en cours d'affichage (null = aucune). */
+  emote?: { emoji: string; id: number } | null;
 }
 
 export function Opponent({
@@ -28,12 +31,14 @@ export function Opponent({
   jokerValue,
   status,
   turnOrder,
+  emote,
 }: OpponentProps) {
   const statusTitle =
     status === "passed" ? "A passé" : status === "claimed" ? "Réagit" : undefined;
 
   return (
     <div className={`opponent opponent-${status}`}>
+      {emote && <EmoteBubble emoji={emote.emoji} id={emote.id} />}
       <Tooltip content={`${fullName} · ${playerName}`} placement="bottom">
         <div className="opponent-label">
           <span className={`turn-badge ${turnOrder === 1 ? "turn-badge-current" : ""}`}>
