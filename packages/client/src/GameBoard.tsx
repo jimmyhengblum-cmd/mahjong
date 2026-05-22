@@ -12,6 +12,7 @@ import { ActionButtons } from "./components/ActionButtons.js";
 import { WinningHandReveal } from "./components/WinningHandReveal.js";
 import { ClaimAnnouncement } from "./components/ClaimAnnouncement.js";
 import { ScoreOverlay } from "./components/ScoreOverlay.js";
+import { TurnTimer } from "./components/TurnTimer.js";
 import { Tutorial, hasSeenTutorial, markTutorialSeen } from "./components/Tutorial.js";
 import { Confetti } from "./components/Confetti.js";
 import { SortIcon } from "./components/Icons.js";
@@ -24,6 +25,8 @@ interface GameBoardProps {
   humanSeat: SeatIndex;
   /** Pseudo de chaque siège (4 entrées, indexé par SeatIndex). */
   seatNames: readonly string[];
+  /** Décompte serveur (online uniquement, null sinon). */
+  timer?: { seats: SeatIndex[]; deadlineMs: number } | null;
   onResetSession: () => void;
   /** Affiche un bouton "Quitter" qui appelle ce callback. */
   onExit?: () => void;
@@ -36,6 +39,7 @@ export function GameBoard({
   game,
   humanSeat,
   seatNames,
+  timer,
   onResetSession,
   onExit,
 }: GameBoardProps) {
@@ -174,6 +178,13 @@ export function GameBoard({
       </main>
 
       <footer className="action-bar">
+        {timer && (
+          <TurnTimer
+            seats={timer.seats}
+            deadlineMs={timer.deadlineMs}
+            humanSeat={humanSeat}
+          />
+        )}
         <ActionButtons game={game} />
       </footer>
 

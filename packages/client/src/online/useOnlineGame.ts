@@ -15,7 +15,20 @@ import type {
   HumanReactionOptions,
   UseGameResult,
 } from "../hooks/useGame.js";
-import { getCachedGameState, getCachedRoom, getSocket } from "./socket.js";
+import {
+  getCachedGameState,
+  getCachedRoom,
+  getCachedTimer,
+  getSocket,
+} from "./socket.js";
+
+/** Info de décompte pour l'UI. */
+export interface TimerInfo {
+  /** Sièges humains attendus (1 en discard, 1+ en reaction). */
+  seats: SeatIndex[];
+  /** Timestamp absolu (Date.now() côté serveur) auquel le bot prend la main. */
+  deadlineMs: number;
+}
 
 const ANNOUNCEMENT_DURATION_MS = 1600;
 
@@ -31,7 +44,10 @@ export interface OnlineGameInfo {
 }
 
 export type UseOnlineGameResult = Omit<UseGameResult, "humanSeat" | "resetSession"> &
-  OnlineGameInfo;
+  OnlineGameInfo & {
+    /** Décompte serveur (null = pas de timer actif). */
+    timer: TimerInfo | null;
+  };
 
 /**
  * Pendant la même interface que useGame mais state vient du serveur.
@@ -51,6 +67,7 @@ export function useOnlineGame(): UseOnlineGameResult {
     const cached = getCachedGameState();
     return cached ? deserializeStateFromWire(cached.wire) : null;
   });
+  const [timer, setTimer] = useState<TimerInfo | null>(() => getCachedTimer());
   const [events, setEvents] = useState<RoundEvent[]>([]);
   const [dealCounter, setDealCounter] = useState(0);
   const [isDealing, setIsDealing] = useState(false);
@@ -75,13 +92,20 @@ export function useOnlineGame(): UseOnlineGameResult {
       setEvents((prev) => [...prev, ...newEvents]);
     };
 
+    const onTimerSet = (payload: TimerInfo) => setTimer(payload);
+    const onTimerClear = () => setTimer(null);
+
     socket.on("room:state", onRoomState);
     socket.on("game:state", onGameState);
     socket.on("game:event", onGameEvent);
+    socket.on("timer:set", onTimerSet);
+    socket.on("timer:clear", onTimerClear);
     return () => {
       socket.off("room:state", onRoomState);
       socket.off("game:state", onGameState);
       socket.off("game:event", onGameEvent);
+      socket.off("timer:set", onTimerSet);
+      socket.off("timer:clear", onTimerClear);
     };
   }, []);
 
@@ -239,6 +263,7 @@ export function useOnlineGame(): UseOnlineGameResult {
     seat,
     room,
     isHost,
+    timer,
   };
 }
 

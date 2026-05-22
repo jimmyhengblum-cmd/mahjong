@@ -47,6 +47,7 @@ export function OnlineGame({ onExit }: OnlineGameProps) {
       game={game}
       humanSeat={og.seat}
       seatNames={seatNames}
+      timer={og.timer}
       onResetSession={() => {}}
       onExit={handleExit}
     />

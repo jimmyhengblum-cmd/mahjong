@@ -100,6 +100,17 @@ export interface ServerToClientEvents {
   ) => void;
   /** Event ponctuel (claim, hu, etc.) pour piloter sons/anim côté client. */
   "game:event": (events: RoundEvent[]) => void;
+  /**
+   * Décompte avant auto-play par le bot IA. Émis dès qu'un (ou
+   * plusieurs) humain(s) doit agir.
+   *   - seats : les sièges humains attendus (1 en discard, 1+ en reaction)
+   *   - deadlineMs : timestamp absolu (Date.now() côté serveur) auquel
+   *     le serveur va auto-jouer. Le client calcule
+   *     `secondsLeft = (deadlineMs - Date.now()) / 1000`.
+   */
+  "timer:set": (payload: { seats: SeatIndex[]; deadlineMs: number }) => void;
+  /** Plus de timer actif (phase changée, manche finie, etc.). */
+  "timer:clear": () => void;
 }
 
 export interface ClientToServerEvents {

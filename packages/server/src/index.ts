@@ -13,11 +13,15 @@ import cors from "cors";
 import http from "node:http";
 import { Server } from "socket.io";
 import type { SeatIndex } from "@mjwz/engine";
+import { botStep } from "@mjwz/engine";
 import {
   BOT_DELAY,
+  HUMAN_ACTION_TIMEOUT_MS,
   applyRoomAction,
+  clearHumanWatchdog,
   createRoom,
   getRoom,
+  humansAwaitingAction,
   joinRoom,
   leaveRoom,
   newRound,
@@ -100,8 +104,11 @@ function tickBots(room: Room) {
     broadcastEvents(room, result.events);
     if (result.state.phase.kind === "ended") {
       broadcastRoomState(room);
+      clearHumanWatchdog(room);
+      io.to(room.code).emit("timer:clear");
     } else {
       scheduleBotTick(room);
+      syncHumanWatchdog(room);
     }
     return;
   }
@@ -112,9 +119,102 @@ function tickBots(room: Room) {
     if ("error" in result) return;
     broadcastGameState(room);
     broadcastEvents(room, result.events);
-    if (result.state.phase.kind === "ended") broadcastRoomState(room);
-    else scheduleBotTick(room);
+    if (result.state.phase.kind === "ended") {
+      broadcastRoomState(room);
+      clearHumanWatchdog(room);
+      io.to(room.code).emit("timer:clear");
+    } else {
+      scheduleBotTick(room);
+      syncHumanWatchdog(room);
+    }
+    return;
   }
+  // Rien à faire côté bot : on attend un humain. Démarre/refresh le watchdog.
+  syncHumanWatchdog(room);
+}
+
+/**
+ * Aligne le watchdog d'inactivité humaine avec l'état courant :
+ *   - Si des humains doivent agir : (ré)arme le timeout + émet timer:set.
+ *   - Si aucun humain attendu : nettoie + émet timer:clear.
+ *
+ * Idempotent : on ne ré-arme PAS si la cible (sièges + phase) n'a pas
+ * bougé depuis la dernière fois (évite de "rallonger" le timer chaque
+ * tick pendant une phase reaction où un humain attend encore).
+ */
+function syncHumanWatchdog(room: Room) {
+  const seats = humansAwaitingAction(room);
+  if (seats.length === 0) {
+    if (room.humanActionTimeout) {
+      clearHumanWatchdog(room);
+      io.to(room.code).emit("timer:clear");
+    }
+    return;
+  }
+  // Idempotence : même set de sièges + timer encore actif = on ne touche pas.
+  const sameSeats =
+    room.humanActionSeats &&
+    room.humanActionSeats.length === seats.length &&
+    room.humanActionSeats.every((s, i) => s === seats[i]);
+  if (sameSeats && room.humanActionTimeout) return;
+
+  // (Re)démarre proprement
+  if (room.humanActionTimeout) clearTimeout(room.humanActionTimeout);
+  const deadlineMs = Date.now() + HUMAN_ACTION_TIMEOUT_MS;
+  room.humanActionDeadlineMs = deadlineMs;
+  room.humanActionSeats = [...seats];
+  room.humanActionTimeout = setTimeout(() => {
+    autoPlayForHumans(room);
+  }, HUMAN_ACTION_TIMEOUT_MS);
+  io.to(room.code).emit("timer:set", { seats: [...seats], deadlineMs });
+}
+
+/**
+ * Le watchdog a expiré : pour chaque humain qui doit encore agir,
+ * on demande à botStep une action et on l'applique. botStep prend en
+ * compte hu prioritaire, claims pong/chi, ou défausse safe.
+ */
+function autoPlayForHumans(room: Room) {
+  if (!room.state || room.status !== "playing") return;
+  const seats = humansAwaitingAction(room);
+  if (seats.length === 0) {
+    clearHumanWatchdog(room);
+    io.to(room.code).emit("timer:clear");
+    return;
+  }
+  console.log(
+    "[auto-play]",
+    room.code,
+    "seats=",
+    seats,
+    "phase=",
+    room.state.phase.kind
+  );
+  for (const seat of seats) {
+    if (!room.state || room.status !== "playing") break;
+    const action = botStep(room.state, seat);
+    if (!action) {
+      // botStep retourne null si le siège n'est plus impliqué (race après
+      // qu'un autre humain ait déjà claim/passé). Skip proprement.
+      continue;
+    }
+    const result = applyRoomAction(room.code, action);
+    if ("error" in result) {
+      console.error("[auto-play]", room.code, result.error);
+      continue;
+    }
+    broadcastGameState(room);
+    broadcastEvents(room, result.events);
+    if (result.state.phase.kind === "ended") {
+      broadcastRoomState(room);
+      clearHumanWatchdog(room);
+      io.to(room.code).emit("timer:clear");
+      return;
+    }
+  }
+  // Après auto-play, relance le cycle (potentiels bots à faire jouer,
+  // ou nouveau watchdog pour la phase suivante).
+  scheduleBotTick(room);
 }
 
 // -------------------- Socket handlers --------------------
@@ -174,6 +274,7 @@ io.on("connection", (socket) => {
     broadcastGameState(room);
     // Si siège 0 (donneur) est un bot, on démarre le tick
     scheduleBotTick(room);
+    syncHumanWatchdog(room);
   });
 
   socket.on("game:newRound", (cb) => {
@@ -192,6 +293,7 @@ io.on("connection", (socket) => {
     broadcastRoomState(room);
     broadcastGameState(room);
     scheduleBotTick(room);
+    syncHumanWatchdog(room);
   });
 
   socket.on("game:action", (action) => {
@@ -214,10 +316,14 @@ io.on("connection", (socket) => {
     broadcastEvents(room, result.events);
     if (result.state.phase.kind === "ended") {
       broadcastRoomState(room);
+      clearHumanWatchdog(room);
+      io.to(room.code).emit("timer:clear");
       return;
     }
-    // Après l'action humain, relance le tick pour que les bots jouent
+    // L'humain a agi à temps → on arme à nouveau pour la phase suivante
+    // (clear puis sync via tickBots, qui résout aussi les actions bot intermédiaires).
     scheduleBotTick(room);
+    syncHumanWatchdog(room);
   });
 
   socket.on("disconnect", () => {

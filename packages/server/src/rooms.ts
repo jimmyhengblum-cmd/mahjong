@@ -18,6 +18,8 @@ import type { Seat, RoomPublicState } from "./types.js";
 
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // pas de I, O, 0, 1
 const BOT_TURN_DELAY_MS = 800;
+/** Délai max accordé à un humain avant que le bot IA joue à sa place. */
+export const HUMAN_ACTION_TIMEOUT_MS = 45_000;
 
 export interface Room {
   code: string;
@@ -27,6 +29,13 @@ export interface Room {
   status: "waiting" | "playing" | "ended";
   /** Timer du driver de bots (relancé après chaque action). */
   botDriverTimeout?: NodeJS.Timeout;
+  /** Watchdog d'inactivité humaine. Si l'humain ne joue pas avant
+   *  `humanActionDeadlineMs`, le bot IA prend la main pour ce siège. */
+  humanActionTimeout?: NodeJS.Timeout;
+  /** Timestamp (Date.now()) absolu du watchdog actif, pour resync. */
+  humanActionDeadlineMs?: number;
+  /** Sièges humains attendus par le watchdog actif. */
+  humanActionSeats?: SeatIndex[];
   /** Tampon des events de la manche en cours. */
   events: RoundEvent[];
 }
@@ -93,13 +102,20 @@ export function leaveRoom(code: string, socketId: string): Room | null {
   for (let i = 0; i < 4; i++) {
     const seat = room.seats[i]!;
     if (seat.kind === "human" && seat.socketId === socketId) {
-      room.seats[i] = { kind: "empty" };
+      // En lobby : siège vide (peut être repris par un autre humain).
+      // En partie : remplace par un bot pour que le jeu continue sans freeze.
+      if (room.status === "playing") {
+        room.seats[i] = { kind: "bot", label: `Bot ${i + 1}` };
+      } else {
+        room.seats[i] = { kind: "empty" };
+      }
     }
   }
   // Plus aucun humain ? On détruit la room.
   const hasHuman = room.seats.some((s) => s.kind === "human");
   if (!hasHuman) {
     if (room.botDriverTimeout) clearTimeout(room.botDriverTimeout);
+    if (room.humanActionTimeout) clearTimeout(room.humanActionTimeout);
     rooms.delete(code);
     return null;
   }
@@ -213,6 +229,37 @@ export function isBot(room: Room, seat: SeatIndex): boolean {
 
 export function isHuman(room: Room, seat: SeatIndex): boolean {
   return room.seats[seat]!.kind === "human";
+}
+
+/**
+ * Renvoie la liste des sièges humains qui doivent agir dans l'état courant.
+ *   - discard phase : 1 humain si le seat courant est humain
+ *   - reaction phase : tous les humains dans `pending`
+ *   - draw / ended : aucun (le serveur auto-pioche, et fini = fini)
+ */
+export function humansAwaitingAction(room: Room): SeatIndex[] {
+  if (!room.state) return [];
+  const phase = room.state.phase;
+  if (phase.kind === "draw" || phase.kind === "ended") return [];
+  if (phase.kind === "discard") {
+    return isHuman(room, phase.current) ? [phase.current] : [];
+  }
+  // reaction
+  const result: SeatIndex[] = [];
+  for (const seat of phase.pending) {
+    if (isHuman(room, seat)) result.push(seat);
+  }
+  return result;
+}
+
+/** Annule le watchdog d'inactivité humaine (si actif). */
+export function clearHumanWatchdog(room: Room) {
+  if (room.humanActionTimeout) {
+    clearTimeout(room.humanActionTimeout);
+    room.humanActionTimeout = undefined;
+  }
+  room.humanActionDeadlineMs = undefined;
+  room.humanActionSeats = undefined;
 }
 
 /** Convertit un Seat interne en représentation publique (pas de socketId leak). */

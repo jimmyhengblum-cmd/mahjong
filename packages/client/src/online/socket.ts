@@ -42,6 +42,8 @@ let _lastRoom: RoomPublicState | null = null;
  * raterait game:state sans ce cache.
  */
 let _lastGameState: { wire: WireState; seat: SeatIndex } | null = null;
+/** Dernier état du watchdog d'inactivité humaine. */
+let _lastTimer: { seats: SeatIndex[]; deadlineMs: number } | null = null;
 
 export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> {
   if (!socket) {
@@ -57,6 +59,12 @@ export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> 
     socket.on("game:state", (wire, seat) => {
       _lastGameState = { wire, seat };
     });
+    socket.on("timer:set", (payload) => {
+      _lastTimer = payload;
+    });
+    socket.on("timer:clear", () => {
+      _lastTimer = null;
+    });
   }
   return socket;
 }
@@ -71,11 +79,17 @@ export function getCachedGameState(): { wire: WireState; seat: SeatIndex } | nul
   return _lastGameState;
 }
 
+/** Retourne le dernier timer:set reçu (ou null si timer:clear). */
+export function getCachedTimer(): { seats: SeatIndex[]; deadlineMs: number } | null {
+  return _lastTimer;
+}
+
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
     _lastRoom = null;
     _lastGameState = null;
+    _lastTimer = null;
   }
 }

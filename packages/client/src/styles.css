@@ -1409,6 +1409,53 @@ kbd {
 }
 .lobby-seat-human .lobby-seat-occupant { color: var(--accent); }
 
+/* ==================== TURN TIMER ==================== */
+
+.turn-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  min-width: 140px;
+  max-width: 200px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.turn-timer-mine {
+  /* Plus appuyé quand c'est nous qui devons jouer */
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+.turn-timer-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.turn-timer-bar-fill {
+  height: 100%;
+  transition: width 0.25s linear, background 0.3s ease;
+  border-radius: 2px;
+}
+.turn-timer.tt-ok    .turn-timer-bar-fill { background: var(--positive); }
+.turn-timer.tt-warn  .turn-timer-bar-fill { background: var(--accent); }
+.turn-timer.tt-danger .turn-timer-bar-fill { background: var(--negative); }
+.turn-timer.tt-danger { animation: pulseSoft 1s ease-in-out infinite; }
+
+.turn-timer-label {
+  font-size: var(--t-xs);
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.turn-timer-mine .turn-timer-label { color: var(--text); font-weight: 600; }
+
 /* ==================== LOADING ==================== */
 
 .loading-screen {
