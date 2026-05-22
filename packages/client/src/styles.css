@@ -139,7 +139,10 @@ html, body, #root {
 /* ==================== TOPBAR ==================== */
 
 .topbar {
-  padding: var(--s-2) var(--s-4);
+  /* Safe-area : sur iPhone en landscape l'encoche est sur le côté gauche.
+     env(safe-area-inset-*) renvoie 0 hors notch. */
+  padding: var(--s-2) max(var(--s-4), env(safe-area-inset-right))
+           var(--s-2) max(var(--s-4), env(safe-area-inset-left));
   background: var(--dim);
   display: flex;
   justify-content: space-between;
@@ -918,7 +921,8 @@ html, body, #root {
 
 .action-bar {
   background: var(--dim);
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-3) max(var(--s-4), env(safe-area-inset-right))
+           max(var(--s-3), env(safe-area-inset-bottom)) max(var(--s-4), env(safe-area-inset-left));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1938,121 +1942,202 @@ kbd {
   .wall-square-inside { top: 56px; right: 60px; bottom: 56px; left: 60px; }
 }
 
-/* Mobile : on simplifie radicalement */
-@media (max-width: 640px) {
-  html, body, #root { overflow: auto; }
+/* ==================== MOBILE — PORTRAIT REJECT ==================== */
 
-  .topbar {
-    padding: 6px 10px;
-    flex-wrap: wrap;
-    gap: 8px;
+/* L'overlay est caché par défaut. Affiché uniquement en portrait sur
+   phone/tablet — le jeu se joue exclusivement en paysage. */
+.rotate-hint { display: none; }
+
+@media (orientation: portrait) and (max-width: 900px) {
+  /* Cache toute l'app en portrait — l'overlay prend toute la place */
+  .app,
+  .lobby,
+  .mode-select,
+  .loading-screen {
+    display: none !important;
   }
-  .topbar h1 { font-size: 14px; flex: 1 0 100%; text-align: center; }
-  .topbar-info { gap: 6px; justify-content: center; flex: 1 0 100%; }
-  .topbar-actions { justify-content: center; flex: 1 0 100%; }
-
-  .topbar-joker { padding: 2px 6px; gap: 4px; }
-  .topbar-joker-label { font-size: 9px; }
-  .topbar-joker-val { font-size: 11px; }
-
-  .scoreboard { padding: 2px 4px; }
-  .scoreboard-cell { padding: 1px 4px; min-width: 22px; }
-  .scoreboard-cell-score { font-size: 11px; }
-
-  /* Le mur devient compact : on ne montre que les 4 sides en plus petit */
-  .wall-square {
-    max-width: 280px;
-    --wall-tile-short: 14px;
-    --wall-tile-long: 20px;
-    --pin-offset: 48px;
-  }
-  .wall-square-inside {
-    top: 48px;
-    right: 52px;
-    bottom: 48px;
-    left: 52px;
-  }
-
-  /* Layout table : on stack verticalement */
-  .table {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto auto;
-    grid-template-areas:
-      "north"
-      "west"
-      "center"
-      "east"
-      "south";
-    padding: 6px;
-    gap: 4px;
-  }
-  .seat-east, .seat-west {
+  .rotate-hint {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    color: var(--text);
+    z-index: 9999;
+    align-items: center;
     justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+    padding: 24px;
   }
-
-  /* Main : tuiles plus grosses pour le tactile, scroll horizontal si besoin */
-  .hand {
-    gap: 3px;
-    padding: 0 4px;
+  .rotate-hint-icon {
+    font-size: 84px;
+    animation: rotatePhone 2.4s ease-in-out infinite;
+    transform-origin: 50% 50%;
   }
-  .hand .tile-btn svg { width: 38px !important; height: 51px !important; }
-  .hand .tile-btn:hover:not(:disabled) {
-    transform: translateY(-6px) scale(1.03);
+  .rotate-hint-title {
+    font-size: 22px;
+    font-weight: 600;
   }
-  /* Touch : drag-and-drop ne fonctionne pas, on désactive le hint */
-  .hand .tile-btn { cursor: pointer; }
-
-  /* Action bar : wrap les boutons */
-  .action-bar {
-    padding: 6px 8px;
-    min-height: 60px;
+  .rotate-hint-sub {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 280px;
   }
-  .action-buttons { flex-wrap: wrap; gap: 6px; justify-content: center; }
-  .action-tile { width: 60px; height: 50px; padding: 2px; }
-  .action-tile-cn { font-size: 20px; }
-  .action-tile-label { font-size: 9px; }
-  .action-tile-hint { font-size: 8px; }
-  .action-tile-small { width: 50px; height: 42px; }
-  .action-tile-small .action-tile-cn { font-size: 16px; }
-
-  /* Tutorial : pleine largeur, scroll si grand */
-  .tutorial-card {
-    padding: 18px 18px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .tutorial-title { font-size: 18px; }
-  .tutorial-body { font-size: 13px; }
-
-  /* Modal victoire : compact */
-  .win-card { padding: 18px 16px; }
-  .win-title { font-size: 36px; }
-  .win-subtitle { font-size: 13px; }
-
-  /* Toast claim : plus petit */
-  .claim-ann-cn { font-size: 44px; }
-  .claim-ann-fr { font-size: 14px; }
-
-  /* Opposants : compactés */
-  .opponent { max-width: 100%; gap: 3px; padding: 3px; }
-  .opponent-label { font-size: 10px; padding: 2px 6px; }
-  .opponent-tiles { max-width: 160px; }
-
-  /* Tooltip : largeur réduite, sinon dépasse */
-  .tooltip-content { max-width: 180px; font-size: 11px; padding: 6px 10px; }
-
-  /* Boussole / rotation overlay : moins visible mobile */
-  .rotation-overlay { display: none; }
+}
+@keyframes rotatePhone {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
 }
 
-/* Très petit (paysage téléphone, etc.) : encore plus compact */
-@media (max-width: 380px) {
+/* ==================== MOBILE — LANDSCAPE COMPACT ==================== */
+
+/* Phone en paysage : largeur correcte mais hauteur très limitée (~360-450px).
+   On garde le layout 3-colonnes mais on densifie tout. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html, body, #root { overflow: hidden; }
+
+  /* Topbar : 1 ligne ultra-compacte */
+  .topbar {
+    padding: 4px 8px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .topbar h1 { font-size: 13px; }
+  .topbar-info { gap: 6px; }
+  .topbar-actions { gap: 4px; }
+  .topbar-joker { padding: 2px 6px; gap: 4px; }
+  .topbar-joker-label { font-size: 9px; }
+  .icon-btn { padding: 4px 6px; }
+  .icon-btn svg { width: 14px; height: 14px; }
+  .chat-bell-btn { padding: 3px 7px; font-size: 14px; }
+  .chat-bell-badge { min-width: 14px; height: 14px; font-size: 9px; }
+
+  /* Mur : nettement plus petit pour libérer la largeur */
   .wall-square {
-    max-width: 240px;
+    max-width: min(280px, 38vh);
     --wall-tile-short: 12px;
-    --wall-tile-long: 16px;
+    --wall-tile-long: 18px;
     --pin-offset: 40px;
   }
   .wall-square-inside { top: 40px; right: 44px; bottom: 40px; left: 44px; }
-  .hand .tile-btn svg { width: 32px !important; height: 43px !important; }
+
+  /* Table : on garde la grille 3-col mais on resserre */
+  .table {
+    padding: 4px;
+    gap: 4px;
+  }
+  .seat-south {
+    padding: 4px;
+    gap: 4px;
+    max-height: 42vh;
+  }
+  .seat-south-label { font-size: 11px; gap: 4px; }
+  .seat-south-wind { font-size: 14px; }
+  .seat-south-name { font-size: 11px; max-width: 100px; }
+  .hand-sort-btn { padding: 2px; }
+  .turn-badge { width: 16px; height: 16px; font-size: 10px; }
+
+  /* Tuiles main : plus petites, garde tap-friendly (~36-44px de cible) */
+  .hand { gap: 2px; padding: 4px 6px 0; }
+  .hand .tile-btn svg {
+    width: 34px !important;
+    height: 45px !important;
+  }
+  .hand .tile-btn:hover:not(:disabled) {
+    transform: translateY(-4px) scale(1.02);
+  }
+  .hand .tile-btn { cursor: pointer; } /* pas de drag tactile */
+
+  /* Opposants : compacts, label fin */
+  .opponent {
+    max-width: 100%;
+    gap: 2px;
+    padding: 3px;
+    border-width: 1px;
+  }
+  .opponent-label {
+    font-size: 9px;
+    padding: 2px 6px;
+    gap: 4px;
+  }
+  .opponent-wind { font-size: 12px; }
+  .opponent-name { font-size: 9px; max-width: 80px; }
+  .opponent-tiles { max-width: 100px; gap: 1px; }
+  .opponent-tiles svg { width: 12px !important; height: 16px !important; }
+  .exposed-melds { gap: 2px; }
+  .exposed-melds svg { width: 14px !important; height: 19px !important; }
+
+  /* Action bar : densifie, wrap si vraiment trop */
+  .action-bar {
+    padding: 4px 6px;
+    min-height: 52px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .action-buttons { gap: 4px; }
+  .action-tile { width: 50px; height: 42px; padding: 2px; }
+  .action-tile-cn { font-size: 16px; }
+  .action-tile-label { font-size: 8px; }
+  .action-tile-hint { display: none; } /* hide les raccourcis clavier */
+  .action-tile-small { width: 42px; height: 36px; }
+  .action-tile-small .action-tile-cn { font-size: 13px; }
+
+  /* Timer compact */
+  .turn-timer { min-width: 100px; max-width: 140px; padding: 4px 6px; }
+  .turn-timer-label { font-size: 10px; }
+
+  /* Barre d'emotes : tailles tactiles + serrée */
+  .emote-bar { padding: 2px; gap: 2px; }
+  .emote-bar-btn { font-size: 18px; padding: 3px 4px; }
+
+  /* Bulles emote : un peu plus petites pour ne pas voler la vue */
+  .emote-bubble { font-size: 18px; padding: 3px 8px; top: -24px; }
+
+  /* Chat drawer : plus étroit, scroll fluide */
+  .chat-drawer { width: 280px; max-width: 75vw; }
+  .chat-drawer-header { padding: 8px 12px; font-size: 13px; }
+  .chat-drawer-log { padding: 8px 12px; gap: 6px; }
+  .chat-drawer-form { padding: 6px 8px; gap: 4px; }
+  .chat-drawer-input { padding: 6px 10px; font-size: 12px; }
+  .chat-drawer-send { padding: 0 10px; font-size: 12px; }
+  .chat-msg-text { padding: 4px 8px; font-size: 12px; }
+
+  /* Tooltip plus court */
+  .tooltip-content { max-width: 160px; font-size: 10px; padding: 4px 8px; }
+
+  /* Score overlay : adapté */
+  .score-overlay-card { padding: 12px 14px; max-width: 90vw; }
+  .score-overlay-title { font-size: 16px; }
+  .score-overlay-row { padding: 6px 10px; }
+  .score-overlay-name { font-size: 12px; }
+
+  /* Modals (victoire, tutoriel) : scroll interne */
+  .win-card, .tutorial-card {
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 14px 16px;
+  }
+  .win-title { font-size: 26px; }
+  .win-subtitle { font-size: 11px; }
+  .tutorial-title { font-size: 16px; }
+  .tutorial-body { font-size: 12px; }
+
+  /* Toast claim : plus petit */
+  .claim-ann-cn { font-size: 36px; }
+  .claim-ann-fr { font-size: 12px; }
+}
+
+/* Très petit landscape (iPhone SE rotated etc., width ~568) : on pousse plus loin */
+@media (orientation: landscape) and (max-height: 380px) {
+  .wall-square {
+    max-width: min(220px, 32vh);
+    --wall-tile-short: 10px;
+    --wall-tile-long: 14px;
+    --pin-offset: 32px;
+  }
+  .wall-square-inside { top: 32px; right: 36px; bottom: 32px; left: 36px; }
+  .hand .tile-btn svg { width: 28px !important; height: 38px !important; }
+  .action-tile { width: 44px; height: 36px; }
+  .action-tile-cn { font-size: 14px; }
 }
